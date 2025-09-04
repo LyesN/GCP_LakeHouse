@@ -14,6 +14,12 @@ STATUTS = ['actif', 'inactif']
 NIVEAUX = ['junior', 'senior', 'expert']
 CATEGORIES = ['A', 'B', 'C']
 
+def clean_field(value):
+    """Nettoie un champ pour éviter les problèmes avec le délimiteur CSV"""
+    if isinstance(value, str):
+        return value.replace(';', ',').replace('\n', ' ').replace('\r', ' ')
+    return value
+
 def generate_row(row_id):
     """Génère une ligne de données CSV"""
     base_date = datetime(2020, 1, 1)
@@ -22,25 +28,25 @@ def generate_row(row_id):
     
     return [
         row_id,
-        fake.last_name(),
-        fake.first_name(),
-        fake.email(),
+        clean_field(fake.last_name()),
+        clean_field(fake.first_name()),
+        clean_field(fake.email()),
         random.randint(18, 65),
-        random.choice(VILLES),
-        fake.postcode(),
-        fake.phone_number(),
+        clean_field(random.choice(VILLES)),
+        clean_field(fake.postcode()),
+        clean_field(fake.phone_number()),
         round(random.uniform(25000, 80000), 2),
-        random.choice(DEPARTEMENTS),
+        clean_field(random.choice(DEPARTEMENTS)),
         date_embauche.strftime('%Y-%m-%d'),
-        random.choice(STATUTS),
+        clean_field(random.choice(STATUTS)),
         round(random.uniform(0, 100), 2),
         round(random.uniform(42.0, 51.0), 6),
         round(random.uniform(-5.0, 8.0), 6),
-        fake.text(max_nb_chars=100),
-        str(uuid.uuid4()),
-        random.choice(NIVEAUX),
-        random.choice(CATEGORIES),
-        datetime.now().isoformat()
+        clean_field(fake.text(max_nb_chars=100)),
+        clean_field(str(uuid.uuid4())),
+        clean_field(random.choice(NIVEAUX)),
+        clean_field(random.choice(CATEGORIES)),
+        clean_field(datetime.now().isoformat())
     ]
 
 def estimate_rows_needed(target_size_mb):
@@ -114,10 +120,10 @@ if __name__ == "__main__":
     
     arg = sys.argv[1]
     if arg == "1":
-        generate_csv_file('test_data_1gb.csv', 1, 'GB')
+        generate_csv_file('employees_1gb.csv', 1, 'GB')
     elif arg == "5":
-        generate_csv_file('test_data_5gb.csv', 5, 'GB')
+        generate_csv_file('employees_5gb.csv', 5, 'GB')
     elif arg == "5MB":
-        generate_csv_file('test_data_5mb.csv', 5, 'MB')
+        generate_csv_file('employees_5mb.csv', 5, 'MB')
     else:
         print("Taille non supportée. Utilisez 1, 5 ou 5MB.")
