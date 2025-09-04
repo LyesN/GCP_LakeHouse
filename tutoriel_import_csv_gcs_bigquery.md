@@ -14,15 +14,16 @@
 ## Plan du tutoriel
 
 1. **[Étape 1](#étape-1--vérification-du-fichier-csv-dans-gcs)** : Vérification du fichier CSV dans GCS
-2. **[Étape 2](#étape-2--création-du-dataset-bigquery)** : Création du dataset BigQuery
-3. **[Étape 3](#étape-3--import-du-fichier-csv)** : Import manuel du fichier CSV
-   - Configuration via l'interface BigQuery
-   - Définition du schéma de données
-4. **[Étape 4](#étape-4--automatisation-avec-apache-airflow)** : Automatisation avec Apache Airflow
-   - Architecture du pipeline
-   - Configuration des operators
-   - Monitoring et bonnes pratiques
-5. **[Étape 5](#étape-5--vérification-et-monitoring)** : Vérification et monitoring
+2. **[Étape 2](#étape-2--développement-sur-console-gcp)** : Développement sur Console GCP
+   - Création du dataset BigQuery
+   - Définition de la table et du schéma
+   - Développement du flux d'ingestion en SQL
+3. **[Étape 3](#étape-3--test-et-validation-du-flux)** : Test et validation du flux d'ingestion
+4. **[Étape 4](#étape-4--intégration-airflow-comme-orchestrateur)** : Intégration Airflow comme orchestrateur
+   - Architecture du trigger Airflow
+   - Configuration des connexions GCP
+   - Monitoring et alertes
+5. **[Étape 5](#étape-5--déploiement-et-monitoring-de-production)** : Déploiement et monitoring de production
 6. **[Étape 6](#étape-6--optimisations-pour-lentreprise)** : Optimisations pour l'entreprise
    - Partitioning et clustering
    - Gestion des données sensibles
@@ -41,7 +42,13 @@ id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_emb
 3. Localisez votre bucket contenant le fichier CSV
 4. Vérifiez que le fichier est accessible et notez son chemin complet
 
-## Étape 2 : Création du dataset BigQuery
+## Étape 2 : Développement sur Console GCP
+
+### Use Case : Data Engineer développe le flux d'ingestion
+
+Un Data Engineer ou UC (User Case) développe directement sur la **Console GCP** l'ensemble du flux d'ingestion de données. Cette approche permet un développement itératif et un contrôle total sur la structure des données.
+
+### 2.1 Création du dataset BigQuery
 
 1. Dans la **GCP Console**, accédez à **BigQuery**
 2. Dans l'explorateur, cliquez sur votre projet
@@ -49,179 +56,281 @@ id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_emb
 4. Configurez le dataset :
    - **ID du dataset** : `employee_data`
    - **Emplacement** : Europe (ou selon vos besoins)
-   - **Expiration** : Par défaut ou selon votre politique
+   - **Expiration** : Par défaut ou selon votre politique d'entreprise
 
-## Étape 3 : Import du fichier CSV
+### 2.2 Création de la table avec schéma défini
 
-### Via l'interface BigQuery
+Le Data Engineer crée la table de destination avec un schéma précis :
 
-1. Sélectionnez votre dataset `employee_data`
-2. Cliquez sur **Créer une table**
-3. Configurez l'import :
-   - **Créer une table à partir de** : Google Cloud Storage
-   - **Sélectionner un fichier depuis GCS bucket** : `gs://votre-bucket/votre-fichier.csv`
-   - **Format de fichier** : CSV
-   - **Nom de la table** : `employees`
-
-### Configuration avancée
-
-4. Dans **Schéma** :
-   - Cochez **Détection automatique**
-   - Ou définissez manuellement le schéma basé sur l'exemple :
-
-```json
-[
-  {"name": "id", "type": "INTEGER", "mode": "REQUIRED"},
-  {"name": "nom", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "prenom", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "email", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "age", "type": "INTEGER", "mode": "NULLABLE"},
-  {"name": "ville", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "code_postal", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "telephone", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "salaire", "type": "FLOAT", "mode": "NULLABLE"},
-  {"name": "departement", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "date_embauche", "type": "DATE", "mode": "NULLABLE"},
-  {"name": "statut", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "score", "type": "FLOAT", "mode": "NULLABLE"},
-  {"name": "latitude", "type": "FLOAT", "mode": "NULLABLE"},
-  {"name": "longitude", "type": "FLOAT", "mode": "NULLABLE"},
-  {"name": "commentaire", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "reference", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "niveau", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "categorie", "type": "STRING", "mode": "NULLABLE"},
-  {"name": "timestamp", "type": "TIMESTAMP", "mode": "NULLABLE"}
-]
+```sql
+-- Création de la table employees avec schéma typé
+CREATE TABLE `votre-projet.employee_data.employees` (
+  id INT64 NOT NULL,
+  nom STRING,
+  prenom STRING,
+  email STRING,
+  age INT64,
+  ville STRING,
+  code_postal STRING,
+  telephone STRING,
+  salaire FLOAT64,
+  departement STRING,
+  date_embauche DATE,
+  statut STRING,
+  score FLOAT64,
+  latitude FLOAT64,
+  longitude FLOAT64,
+  commentaire STRING,
+  reference STRING,
+  niveau STRING,
+  categorie STRING,
+  timestamp TIMESTAMP,
+  -- Métadonnées d'ingestion
+  ingestion_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+  source_file STRING
+);
 ```
 
-5. Dans **Options avancées** :
-   - **Nombre de lignes d'en-tête à ignorer** : 1
-   - **Séparateur de champ** : Point-virgule (;)
-   - **Ignorer les lignes inconnues** : Activé
-   - **Autoriser les champs en désordre** : Activé
+### 2.3 Développement du flux d'ingestion en SQL
 
-## Étape 4 : Automatisation avec Apache Airflow
+Le Data Engineer développe une série de requêtes SQL pour l'ingestion :
 
-### Architecture du pipeline Airflow
+#### A. Requête de chargement depuis GCS
 
-L'orchestration se fait via Apache Airflow avec les composants suivants :
+```sql
+-- Flux d'ingestion principal depuis GCS
+LOAD DATA INTO `votre-projet.employee_data.employees`
+FROM FILES (
+  format = 'CSV',
+  field_delimiter = ';',
+  skip_leading_rows = 1,
+  uris = ['gs://votre-bucket/employees_*.csv']
+);
+```
 
-1. **DAG principal** : Orchestration des tâches d'import
-2. **Operators GCP** : Intégration native avec BigQuery et GCS
-3. **Scheduling** : Planification des exécutions
-4. **Monitoring** : Suivi des performances et alertes
+#### B. Requête de validation et nettoyage
 
-### Structure du pipeline
+```sql
+-- Validation et nettoyage des données
+CREATE OR REPLACE TABLE `votre-projet.employee_data.employees_clean` AS
+SELECT 
+  id,
+  TRIM(nom) as nom,
+  TRIM(prenom) as prenom,
+  LOWER(email) as email,
+  CASE 
+    WHEN age BETWEEN 18 AND 65 THEN age 
+    ELSE NULL 
+  END as age,
+  ville,
+  code_postal,
+  telephone,
+  salaire,
+  departement,
+  date_embauche,
+  statut,
+  score,
+  latitude,
+  longitude,
+  commentaire,
+  reference,
+  niveau,
+  categorie,
+  timestamp,
+  CURRENT_TIMESTAMP() as processed_date
+FROM `votre-projet.employee_data.employees`
+WHERE id IS NOT NULL;
+```
 
-Le pipeline Airflow se compose de plusieurs tâches :
+#### C. Contrôles qualité intégrés
 
-1. **Vérification des prérequis**
-   - Validation de la présence du fichier CSV dans GCS
-   - Vérification des permissions BigQuery
-   - Contrôle de l'espace disponible
+```sql
+-- Requêtes de contrôle qualité
+SELECT 
+  'Total lignes' as metric,
+  COUNT(*) as valeur
+FROM `votre-projet.employee_data.employees_clean`
 
-2. **Préparation des données**
-   - Validation du format CSV
-   - Contrôle qualité des données (optionnel)
-   - Archivage des versions précédentes
+UNION ALL
 
-3. **Import vers BigQuery**
-   - Utilisation du `GCSToBigQueryOperator`
-   - Configuration du job d'import
-   - Gestion des erreurs et retry
+SELECT 
+  'Emails invalides' as metric,
+  COUNT(*) as valeur  
+FROM `votre-projet.employee_data.employees_clean`
+WHERE email NOT LIKE '%@%'
 
-4. **Post-traitement**
-   - Validation des données importées
-   - Mise à jour des métadonnées
-   - Notifications de succès/échec
+UNION ALL
 
-### Configuration du DAG
+SELECT 
+  'Données manquantes critiques' as metric,
+  COUNT(*) as valeur
+FROM `votre-projet.employee_data.employees_clean`
+WHERE nom IS NULL OR prenom IS NULL;
+```
 
-Le DAG Airflow doit être configuré avec :
+## Étape 3 : Test et validation du flux
 
-- **dag_id** : `csv_import_to_bigquery`
-- **schedule_interval** : `'0 2 * * *'` (quotidien à 2h)
-- **start_date** : Date de début du pipeline
-- **catchup** : `False` pour éviter les rattrapages
-- **max_active_runs** : `1` pour éviter les conflits
+### 3.1 Tests unitaires des transformations
 
-### Operators Airflow utilisés
+Le Data Engineer teste chaque étape du flux :
 
-1. **GoogleCloudStorageObjectExistsSensor**
-   - Attendre la disponibilité du fichier CSV
-   - Timeout configurable
-   - Mode poke ou reschedule
+1. **Test de chargement** : Vérification que les données sont correctement importées depuis GCS
+2. **Test de transformation** : Validation des règles de nettoyage et normalisation
+3. **Test de qualité** : Contrôle des métriques de qualité des données
 
-2. **GCSToBigQueryOperator**
-   - Import direct de GCS vers BigQuery
-   - Configuration du schéma
-   - Gestion des options CSV (délimiteur, en-têtes)
+### 3.2 Validation des performances
 
-3. **BigQueryCheckOperator**
-   - Validation post-import
-   - Contrôle du nombre de lignes
-   - Vérification de la qualité des données
+```sql
+-- Analyse des performances d'ingestion
+SELECT 
+  job_id,
+  creation_time,
+  start_time,
+  end_time,
+  total_bytes_processed,
+  total_slot_ms
+FROM `region-europe-west1.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
+WHERE job_type = 'LOAD'
+AND creation_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY);
+```
 
-4. **EmailOperator** (optionnel)
-   - Notifications en cas de succès/échec
-   - Rapports de performance
+### 3.3 Tests de régression
 
-### Configuration des connexions
+Le Data Engineer s'assure que les modifications n'impactent pas les données existantes :
+- Comparaison des métriques avant/après
+- Validation des schémas
+- Tests de non-régression sur les requêtes aval
 
-Dans l'interface Airflow Admin > Connections :
+## Étape 4 : Intégration Airflow comme orchestrateur
 
-1. **google_cloud_default**
-   - Connection Type : Google Cloud
-   - Project Id : votre-projet-gcp
-   - Keyfile JSON : Clé de service avec permissions appropriées
+### Rôle d'Airflow : Trigger du flux d'ingestion
 
-### Monitoring et alertes
+Une fois que le Data Engineer a développé et testé le flux d'ingestion en SQL sur la **Console GCP**, **Apache Airflow** intervient uniquement comme **orchestrateur et trigger** du processus. Airflow n'exécute pas directement le code SQL mais déclenche l'exécution des requêtes développées.
 
-1. **Airflow UI**
-   - Suivi en temps réel des DAG runs
-   - Logs détaillés par tâche
-   - Graphique de dépendances
+### 4.1 Architecture du trigger Airflow
 
-2. **Métriques personnalisées**
-   - Nombre de lignes importées
-   - Temps d'exécution
-   - Taux de succès/échec
+**Principe** : Airflow orchestre l'exécution séquentielle des requêtes SQL développées par le Data Engineer.
 
-3. **Intégration avec monitoring GCP**
-   - Cloud Logging pour les logs centralisés
-   - Cloud Monitoring pour les métriques
-   - Alerting Policy pour les notifications
+#### Flux d'orchestration :
 
-### Bonnes pratiques Airflow
+1. **Détection de fichier** : Airflow surveille l'arrivée de nouveaux fichiers CSV dans GCS
+2. **Trigger d'ingestion** : Lancement du flux d'ingestion BigQuery développé
+3. **Monitoring d'exécution** : Suivi de l'état des jobs BigQuery
+4. **Validation qualité** : Exécution des contrôles qualité
+5. **Notifications** : Alertes en cas de succès/échec
 
-1. **Gestion des dépendances**
-   - Variables Airflow pour la configuration
-   - Connections sécurisées
-   - Séparation des environnements (dev/prod)
+### 4.2 Intégration avec les développements GCP
 
-2. **Retry et récupération**
-   - Configuration des retries automatiques
-   - Stratégie de backoff exponentiel
-   - Alertes sur échecs répétés
+#### A. Exécution des requêtes SQL développées
 
-3. **Performance**
-   - Parallélisation des tâches indépendantes
-   - Pool de workers approprié
-   - Optimisation des ressources
+Airflow utilise les **operators BigQuery** pour déclencher les requêtes SQL créées par le Data Engineer :
 
-### Déploiement
+- **BigQueryInsertJobOperator** : Exécute les requêtes `LOAD DATA` développées
+- **BigQueryCreateEmptyTableOperator** : Crée les tables si nécessaire
+- **BigQueryCheckOperator** : Lance les contrôles qualité SQL
 
-1. **Environnement Airflow**
-   - Cloud Composer (recommandé pour GCP)
-   - Airflow auto-géré sur GKE
-   - Instance Compute Engine avec Airflow
+#### B. Gestion des paramètres dynamiques
 
-2. **Versioning**
-   - DAGs stockés dans un repository Git
-   - CI/CD pour le déploiement
-   - Tests automatisés des DAGs
+Airflow injecte des paramètres dynamiques dans les requêtes SQL :
 
-## Étape 5 : Vérification et monitoring
+- **Date d'exécution** : `{{ ds }}` pour les partitions temporelles
+- **Fichiers source** : Détection automatique des nouveaux fichiers CSV
+- **Variables d'environnement** : Différenciation dev/staging/prod
+
+#### C. Orchestration des étapes
+
+L'orchestrateur Airflow séquence l'exécution :
+
+1. **Pré-validation** → Vérification fichier source
+2. **Ingestion** → Exécution du `LOAD DATA` développé
+3. **Transformation** → Application des règles de nettoyage SQL
+4. **Contrôle qualité** → Exécution des requêtes de validation
+5. **Post-traitement** → Notifications et métriques
+
+### 4.3 Configuration de l'intégration
+
+#### Connexions GCP dans Airflow
+
+L'intégration nécessite la configuration des connexions :
+
+- **Service Account** : Clé de service avec permissions BigQuery et GCS
+- **Project ID** : Projet GCP contenant les datasets
+- **Default location** : Région pour l'exécution des jobs
+
+#### Variables d'environnement
+
+Airflow gère les paramètres via des variables :
+
+- **Dataset names** : `employee_data`, `employee_data_staging`
+- **GCS paths** : Chemins vers les buckets source
+- **Notification emails** : Destinataires des alertes
+- **Retry policies** : Nombre de tentatives et délais
+
+### 4.4 Monitoring et alertes via Airflow
+
+#### Tableaux de bord Airflow
+
+1. **DAG View** : Visualisation du flux d'orchestration
+2. **Task logs** : Logs détaillés de chaque étape BigQuery
+3. **Gantt Chart** : Analyse des performances temporelles
+
+#### Intégration monitoring GCP
+
+Airflow remonte les métriques vers les outils de monitoring GCP :
+
+- **Cloud Logging** : Centralisation des logs d'exécution
+- **Cloud Monitoring** : Métriques de performance des jobs
+- **Cloud Alerting** : Notifications automatisées
+
+#### Alertes configurées
+
+1. **Échec d'ingestion** : Notification immédiate aux Data Engineers
+2. **Dépassement SLA** : Alerte si le traitement dépasse le temps alloué
+3. **Anomalies qualité** : Notification si les contrôles détectent des problèmes
+4. **Ressources** : Alerte si consommation excessive de slots BigQuery
+
+### 4.5 Gestion de l'environnement d'entreprise
+
+#### Séparation des environnements
+
+Airflow orchestre différents environnements :
+
+- **DEV** : Tests et développements sur datasets de développement
+- **STAGING** : Validation avec données anonymisées
+- **PRODUCTION** : Exécution sur les données réelles
+
+#### Gestion des permissions
+
+L'orchestrateur Airflow respecte la gouvernance des données :
+
+- **Rôles IAM** : Séparation des accès par environnement
+- **Service Accounts** : Comptes dédiés par type d'opération
+- **Audit Trail** : Traçabilité complète des exécutions
+
+#### Stratégies de déploiement
+
+1. **Cloud Composer** : Service managé GCP recommandé pour l'entreprise
+2. **Airflow sur GKE** : Déploiement containerisé avec contrôle total
+3. **VM instances** : Solution simple pour environnements de développement
+
+### 4.6 Avantages de cette approche
+
+**Séparation des responsabilités** :
+- **Data Engineers** : Focus sur la logique métier et les transformations SQL
+- **Airflow** : Orchestration, scheduling et monitoring
+- **GCP BigQuery** : Exécution performante des requêtes
+
+**Flexibilité** :
+- Modifications SQL sans redéploiement Airflow
+- Tests indépendants des requêtes sur Console GCP
+- Réutilisabilité des flux pour différents datasets
+
+**Monitoring centralisé** :
+- Vision unifiée de tous les pipelines de données
+- Alertes cohérentes pour tous les flux d'ingestion
+- Métriques de performance agrégées
+
+## Étape 5 : Déploiement et monitoring de production
 
 ### Vérification des données
 
