@@ -6,6 +6,13 @@
 - **Stack** : BigQuery
 - **Objectif** : Créer un pipeline de données automatisé
 
+## Paramètres du projet
+- **Projet GCP** : `lakehouse`
+- **Dataset BigQuery** : `lakehouse_employee_data`
+- **Bucket GCS** : `lakehouse-bucket-20250903`
+- **Fichier CSV** : `employees_5mb.csv`
+- **Chemin complet** : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
+
 ## Prérequis
 - Accès à la GCP Console
 - Fichier CSV disponible dans Google Cloud Storage
@@ -54,7 +61,7 @@ Un Data Engineer ou UC (User Case) développe directement sur la **Console GCP**
 2. Dans l'explorateur, cliquez sur votre projet
 3. Cliquez sur **Créer un dataset**
 4. Configurez le dataset :
-   - **ID du dataset** : `employee_data`
+   - **ID du dataset** : `lakehouse_employee_data`
    - **Emplacement** : Europe (ou selon vos besoins)
    - **Expiration** : Par défaut ou selon votre politique d'entreprise
 
@@ -64,7 +71,7 @@ Le Data Engineer crée la table de destination avec un schéma précis :
 
 ```sql
 -- Création de la table employees avec schéma typé
-CREATE TABLE `votre-projet.employee_data.employees` (
+CREATE TABLE `lakehouse.lakehouse_employee_data.employees` (
   id INT64 NOT NULL,
   nom STRING,
   prenom STRING,
@@ -99,12 +106,12 @@ Le Data Engineer développe une série de requêtes SQL pour l'ingestion :
 
 ```sql
 -- Flux d'ingestion principal depuis GCS
-LOAD DATA INTO `votre-projet.employee_data.employees`
+LOAD DATA INTO `lakehouse.lakehouse_employee_data.employees`
 FROM FILES (
   format = 'CSV',
   field_delimiter = ';',
   skip_leading_rows = 1,
-  uris = ['gs://votre-bucket/employees_*.csv']
+  uris = ['gs://lakehouse-bucket-20250903/employees_5mb.csv']
 );
 ```
 
@@ -112,7 +119,7 @@ FROM FILES (
 
 ```sql
 -- Validation et nettoyage des données
-CREATE OR REPLACE TABLE `votre-projet.employee_data.employees_clean` AS
+CREATE OR REPLACE TABLE `lakehouse.lakehouse_employee_data.employees_clean` AS
 SELECT 
   id,
   TRIM(nom) as nom,
@@ -138,7 +145,7 @@ SELECT
   categorie,
   timestamp,
   CURRENT_TIMESTAMP() as processed_date
-FROM `votre-projet.employee_data.employees`
+FROM `lakehouse.lakehouse_employee_data.employees`
 WHERE id IS NOT NULL;
 ```
 
@@ -149,14 +156,14 @@ WHERE id IS NOT NULL;
 SELECT 
   'Total lignes' as metric,
   COUNT(*) as valeur
-FROM `votre-projet.employee_data.employees_clean`
+FROM `lakehouse.lakehouse_employee_data.employees_clean`
 
 UNION ALL
 
 SELECT 
   'Emails invalides' as metric,
   COUNT(*) as valeur  
-FROM `votre-projet.employee_data.employees_clean`
+FROM `lakehouse.lakehouse_employee_data.employees_clean`
 WHERE email NOT LIKE '%@%'
 
 UNION ALL
@@ -164,7 +171,7 @@ UNION ALL
 SELECT 
   'Données manquantes critiques' as metric,
   COUNT(*) as valeur
-FROM `votre-projet.employee_data.employees_clean`
+FROM `lakehouse.lakehouse_employee_data.employees_clean`
 WHERE nom IS NULL OR prenom IS NULL;
 ```
 
@@ -254,15 +261,15 @@ L'orchestrateur Airflow séquence l'exécution :
 L'intégration nécessite la configuration des connexions :
 
 - **Service Account** : Clé de service avec permissions BigQuery et GCS
-- **Project ID** : Projet GCP contenant les datasets
+- **Project ID** : lakehouse
 - **Default location** : Région pour l'exécution des jobs
 
 #### Variables d'environnement
 
 Airflow gère les paramètres via des variables :
 
-- **Dataset names** : `employee_data`, `employee_data_staging`
-- **GCS paths** : Chemins vers les buckets source
+- **Dataset names** : `lakehouse_employee_data`, `lakehouse_employee_data_staging`
+- **GCS paths** : `gs://lakehouse-bucket-20250903/`
 - **Notification emails** : Destinataires des alertes
 - **Retry policies** : Nombre de tentatives et délais
 
@@ -337,11 +344,11 @@ L'orchestrateur Airflow respecte la gouvernance des données :
 ```sql
 -- Vérifier l'import
 SELECT COUNT(*) as total_rows
-FROM `votre-projet.employee_data.employees`;
+FROM `lakehouse.lakehouse_employee_data.employees`;
 
 -- Aperçu des données
 SELECT *
-FROM `votre-projet.employee_data.employees`
+FROM `lakehouse.lakehouse_employee_data.employees`
 LIMIT 10;
 ```
 
@@ -357,10 +364,10 @@ LIMIT 10;
 
 ```sql
 -- Créer une table partitionnée par date d'embauche
-CREATE TABLE `votre-projet.employee_data.employees_partitioned`
+CREATE TABLE `lakehouse.lakehouse_employee_data.employees_partitioned`
 PARTITION BY DATE(date_embauche)
 CLUSTER BY departement, ville
-AS SELECT * FROM `votre-projet.employee_data.employees`;
+AS SELECT * FROM `lakehouse.lakehouse_employee_data.employees`;
 ```
 
 ### Gestion des données sensibles
