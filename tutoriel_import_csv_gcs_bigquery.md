@@ -14,8 +14,6 @@
 - **Chemin complet** : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
 
 ## Prérequis
-- Accès à la GCP Console
-- Fichier CSV disponible dans Google Cloud Storage
 - Permissions appropriées sur BigQuery et GCS
 
 ## Plan du tutoriel
@@ -66,16 +64,30 @@ id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_emb
 4. Attendez la fin de l'upload
 5. Vérifiez que le fichier apparaît dans la liste avec la taille attendue (~5MB)
 
-### 1.3 Vérification et permissions
+### 1.3 Vérification et test d'accessibilité
 
-1. Cliquez sur le fichier `employees_5mb.csv` pour voir ses détails
-2. Notez le chemin complet : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
-3. Vérifiez les permissions :
-   - Le service account BigQuery doit avoir accès en lecture au bucket
-   - Rôle minimum requis : `Storage Object Viewer`
-4. Testez l'accessibilité depuis BigQuery :
-   - Utilisez la prévisualisation de fichier si disponible
-   - Vérifiez que le délimiteur `;` est correctement détecté
+1. **Vérifier le fichier uploadé** :
+   - Cliquez sur le fichier `employees_5mb.csv` pour voir ses détails
+   - Notez le chemin complet : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
+   - Vérifiez que la taille est d'environ 5MB
+
+2. **Test d'accessibilité simple depuis BigQuery** :
+   - Naviguez vers **BigQuery** dans la GCP Console
+   - Dans l'explorateur, cliquez sur **Créer** > **Table**
+   - **Source** : Google Cloud Storage
+   - **Sélectionner un fichier depuis GCS** : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
+   - **Format de fichier** : CSV
+   
+3. **Validation des permissions** :
+   - Si vous pouvez voir le fichier dans la liste de sélection → Permissions OK
+   - Si erreur "Access Denied" → Contactez votre administrateur GCP
+   - Si le fichier n'apparaît pas → Vérifiez le chemin du bucket
+   
+4. **Test de prévisualisation** :
+   - Dans la configuration de table, cochez **Détection automatique** 
+   - Cliquez sur **Aperçu** (si disponible)
+   - Vérifiez que les données apparaissent avec le délimiteur `;` correctement interprété
+   - Si une seule colonne → Le délimiteur devra être spécifié manuellement
 
 ## Étape 2 : Développement sur Console GCP
 
