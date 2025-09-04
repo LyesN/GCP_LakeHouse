@@ -94,24 +94,22 @@ Une fois le dataset créé, vérifiez l'accessibilité du fichier CSV :
    - Dans l'explorateur BigQuery, cliquez sur le dataset `lakehouse_employee_data` 
    - Cliquez sur **+ Créer une table**
    - **Source** : Google Cloud Storage
-   - **Sélectionner un fichier depuis GCS** : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
-   - **Format de fichier** : CSV
+   - **Parcourir** : chercher le fichier dans le bucket `lakehouse-bucket-20250903`
    
 2. **Validation des permissions** :
    - Si vous pouvez parcourir et sélectionner le fichier → Permissions OK
-   - Si erreur "Access Denied" → Contactez votre administrateur GCP
-   - Si le fichier n'apparaît pas → Vérifiez le chemin du bucket
-   
-3. **Test de prévisualisation** :
-   - Dans la configuration de table, cochez **Détection automatique** 
-   - Observez l'aperçu du schéma généré automatiquement
-   - Vérifiez que les données apparaissent avec le délimiteur `;` correctement interprété
-   - Si une seule colonne → Le délimiteur devra être spécifié manuellement
-   - **Important** : Ne créez pas encore la table, nous le ferons via SQL à l'étape suivante
+   - Si le fichier n'apparaît pas → Contactez votre administrateur GCP
+
+2. **Quitter sans sauvegarder** :
+   - "Annuler" tout en bas puis "Oui quitter"
 
 ### 2.2 Création de la table avec schéma défini
 
-Le Data Engineer crée la table de destination avec un schéma précis :
+1. **Ouvrir l'éditeur SQL** :
+   - Dans BigQuery, cliquez sur **+** (en haut du canvas)
+   - Une nouvelle fenêtre d'éditeur SQL s'ouvre
+
+2. **Saisir la requête de création de table** :
 
 ```sql
 -- Création de la table employees avec schéma typé
@@ -141,6 +139,11 @@ CREATE TABLE `lakehouse.lakehouse_employee_data.employees` (
   source_file STRING
 );
 ```
+
+3. **Exécuter la requête** :
+   - Cliquez sur **Exécuter** (bouton bleu) ou utilisez Ctrl+Enter
+   - Vérifiez que la table apparaît dans l'explorateur sous `lakehouse_employee_data`
+   - La table est maintenant créée et prête pour l'ingestion
 
 ### 2.3 Développement du flux d'ingestion en SQL
 
