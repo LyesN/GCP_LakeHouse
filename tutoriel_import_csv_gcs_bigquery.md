@@ -73,9 +73,7 @@ id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_emb
 
 ## Étape 2 : Développement sur Console GCP
 
-### Use Case : Data Engineer développe le flux d'ingestion
-
-Un Data Engineer ou UC (User Case) développe directement sur la **Console GCP** l'ensemble du flux d'ingestion de données. Cette approche permet un développement itératif et un contrôle total sur la structure des données.
+### Use Case : développement du flux d'ingestion dans la console BigQuery
 
 ### 2.1 Création du dataset BigQuery
 
