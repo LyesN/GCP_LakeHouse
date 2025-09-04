@@ -118,12 +118,15 @@ if __name__ == "__main__":
         print("5MB = génère un fichier de 5MB")
         sys.exit(1)
     
+    # Créer le dossier data s'il n'existe pas
+    os.makedirs('data', exist_ok=True)
+    
     arg = sys.argv[1]
     if arg == "1":
-        generate_csv_file('employees_1gb.csv', 1, 'GB')
+        generate_csv_file('data/employees_1gb.csv', 1, 'GB')
     elif arg == "5":
-        generate_csv_file('employees_5gb.csv', 5, 'GB')
+        generate_csv_file('data/employees_5gb.csv', 5, 'GB')
     elif arg == "5MB":
-        generate_csv_file('employees_5mb.csv', 5, 'MB')
+        generate_csv_file('data/employees_5mb.csv', 5, 'MB')
     else:
         print("Taille non supportée. Utilisez 1, 5 ou 5MB.")
