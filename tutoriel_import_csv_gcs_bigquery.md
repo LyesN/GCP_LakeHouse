@@ -42,12 +42,40 @@ Le fichier contient les colonnes suivantes avec séparateur `;` :
 id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_embauche;statut;score;latitude;longitude;commentaire;reference;niveau;categorie;timestamp
 ```
 
-## Étape 1 : Vérification du fichier CSV dans GCS
+## Étape 1 : Préparation et vérification du fichier CSV dans GCS
+
+### 1.1 Création du bucket GCS
 
 1. Accédez à la **GCP Console**
 2. Naviguez vers **Cloud Storage**
-3. Localisez votre bucket contenant le fichier CSV
-4. Vérifiez que le fichier est accessible et notez son chemin complet
+3. Cliquez sur **Créer un bucket**
+4. Configurez le bucket :
+   - **Nom du bucket** : `lakehouse-bucket-20250903`
+   - **Type d'emplacement** : Région
+   - **Région** : `us-east1` (us pour le Free Tier)
+   - **Classe de stockage** : Par défaut (Standard)
+   - **Contrôle d'accès** : Par défaut
+   - **Protection** : Pas de protection
+5. Cliquez sur **Créer**
+
+### 1.2 Upload du fichier CSV
+
+1. Sélectionnez le bucket `lakehouse-bucket-20250903` créé
+2. Cliquez sur **Importer des fichiers**
+3. Sélectionnez votre fichier `employees_5mb.csv` depuis votre système local
+4. Attendez la fin de l'upload
+5. Vérifiez que le fichier apparaît dans la liste avec la taille attendue (~5MB)
+
+### 1.3 Vérification et permissions
+
+1. Cliquez sur le fichier `employees_5mb.csv` pour voir ses détails
+2. Notez le chemin complet : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
+3. Vérifiez les permissions :
+   - Le service account BigQuery doit avoir accès en lecture au bucket
+   - Rôle minimum requis : `Storage Object Viewer`
+4. Testez l'accessibilité depuis BigQuery :
+   - Utilisez la prévisualisation de fichier si disponible
+   - Vérifiez que le délimiteur `;` est correctement détecté
 
 ## Étape 2 : Développement sur Console GCP
 
