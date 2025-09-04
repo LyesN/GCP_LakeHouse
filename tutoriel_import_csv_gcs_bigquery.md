@@ -7,7 +7,8 @@
 - **Objectif** : Créer un pipeline de données automatisé
 
 ## Paramètres du projet
-- **Projet GCP** : `lakehouse`
+- **Projet GCP** : `LakeHouse`
+- **BigQuery name** : `lake-471013`
 - **Dataset BigQuery** : `lakehouse_employee_data`
 - **Bucket GCS** : `lakehouse-bucket-20250903`
 - **Fichier CSV** : `employees_5mb.csv`
@@ -78,7 +79,7 @@ id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_emb
 ### 2.1 Création du dataset BigQuery
 
 1. Dans la **GCP Console**, accédez à **BigQuery**
-2. Dans l'explorateur, cliquez sur votre projet `lakehouse`
+2. Dans l'explorateur, cliquez sur votre projet `lake-471013`
 3. Cliquez sur **Créer un dataset**
 4. Configurez le dataset :
    - **ID du dataset** : `lakehouse_employee_data`
@@ -113,7 +114,7 @@ Une fois le dataset créé, vérifiez l'accessibilité du fichier CSV :
 
 ```sql
 -- Création de la table employees avec schéma typé
-CREATE TABLE `lakehouse.lakehouse_employee_data.employees` (
+CREATE TABLE `lake-471013.lakehouse_employee_data.employees` (
   id INT64 NOT NULL,
   nom STRING,
   prenom STRING,
@@ -153,7 +154,7 @@ Le Data Engineer développe une série de requêtes SQL pour l'ingestion :
 
 ```sql
 -- Flux d'ingestion principal depuis GCS
-LOAD DATA INTO `lakehouse.lakehouse_employee_data.employees`
+LOAD DATA INTO `lake-471013.lakehouse_employee_data.employees`
 FROM FILES (
   format = 'CSV',
   field_delimiter = ';',
@@ -166,7 +167,7 @@ FROM FILES (
 
 ```sql
 -- Validation et nettoyage des données
-CREATE OR REPLACE TABLE `lakehouse.lakehouse_employee_data.employees_clean` AS
+CREATE OR REPLACE TABLE `lake-471013.lakehouse_employee_data.employees_clean` AS
 SELECT 
   id,
   TRIM(nom) as nom,
@@ -192,7 +193,7 @@ SELECT
   categorie,
   timestamp,
   CURRENT_TIMESTAMP() as processed_date
-FROM `lakehouse.lakehouse_employee_data.employees`
+FROM `lake-471013.lakehouse_employee_data.employees`
 WHERE id IS NOT NULL;
 ```
 
@@ -203,14 +204,14 @@ WHERE id IS NOT NULL;
 SELECT 
   'Total lignes' as metric,
   COUNT(*) as valeur
-FROM `lakehouse.lakehouse_employee_data.employees_clean`
+FROM `lake-471013.lakehouse_employee_data.employees_clean`
 
 UNION ALL
 
 SELECT 
   'Emails invalides' as metric,
   COUNT(*) as valeur  
-FROM `lakehouse.lakehouse_employee_data.employees_clean`
+FROM `lake-471013.lakehouse_employee_data.employees_clean`
 WHERE email NOT LIKE '%@%'
 
 UNION ALL
@@ -218,7 +219,7 @@ UNION ALL
 SELECT 
   'Données manquantes critiques' as metric,
   COUNT(*) as valeur
-FROM `lakehouse.lakehouse_employee_data.employees_clean`
+FROM `lake-471013.lakehouse_employee_data.employees_clean`
 WHERE nom IS NULL OR prenom IS NULL;
 ```
 
@@ -308,7 +309,7 @@ L'orchestrateur Airflow séquence l'exécution :
 L'intégration nécessite la configuration des connexions :
 
 - **Service Account** : Clé de service avec permissions BigQuery et GCS
-- **Project ID** : lakehouse
+- **Project ID** : lake-471013
 - **Default location** : Région pour l'exécution des jobs
 
 #### Variables d'environnement
@@ -391,11 +392,11 @@ L'orchestrateur Airflow respecte la gouvernance des données :
 ```sql
 -- Vérifier l'import
 SELECT COUNT(*) as total_rows
-FROM `lakehouse.lakehouse_employee_data.employees`;
+FROM `lake-471013.lakehouse_employee_data.employees`;
 
 -- Aperçu des données
 SELECT *
-FROM `lakehouse.lakehouse_employee_data.employees`
+FROM `lake-471013.lakehouse_employee_data.employees`
 LIMIT 10;
 ```
 
@@ -411,10 +412,10 @@ LIMIT 10;
 
 ```sql
 -- Créer une table partitionnée par date d'embauche
-CREATE TABLE `lakehouse.lakehouse_employee_data.employees_partitioned`
+CREATE TABLE `lake-471013.lakehouse_employee_data.employees_partitioned`
 PARTITION BY DATE(date_embauche)
 CLUSTER BY departement, ville
-AS SELECT * FROM `lakehouse.lakehouse_employee_data.employees`;
+AS SELECT * FROM `lake-471013.lakehouse_employee_data.employees`;
 ```
 
 ### Gestion des données sensibles
