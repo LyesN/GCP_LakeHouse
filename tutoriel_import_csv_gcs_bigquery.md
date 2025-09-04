@@ -148,13 +148,16 @@ CREATE TABLE `lake-471013.lakehouse_employee_data.employees` (
 
 ### 2.3 Développement du flux d'ingestion en SQL
 
-Le Data Engineer développe une série de requêtes SQL pour l'ingestion :
-
 #### A. Requête de chargement depuis GCS
 
 ```sql
--- Flux d'ingestion principal depuis GCS
+-- Flux d'ingestion principal depuis GCS avec schéma forcé
 LOAD DATA INTO `lake-471013.lakehouse_employee_data.employees`
+(id INT64, nom STRING, prenom STRING, email STRING, age INT64, ville STRING, 
+ code_postal STRING, telephone STRING, salaire FLOAT64, departement STRING, 
+ date_embauche DATE, statut STRING, score FLOAT64, latitude FLOAT64, 
+ longitude FLOAT64, commentaire STRING, reference STRING, niveau STRING, 
+ categorie STRING, timestamp TIMESTAMP)
 FROM FILES (
   format = 'CSV',
   field_delimiter = ';',
@@ -162,6 +165,12 @@ FROM FILES (
   uris = ['gs://lakehouse-bucket-20250903/employees_5mb.csv']
 );
 ```
+
+**Avantages du schéma forcé** :
+- **Évite les conflits** : BigQuery n'essaie pas de détecter automatiquement le schéma
+- **Contrôle total** : Impose exactement les types de données souhaités
+- **Robustesse** : Évite les erreurs "Field has changed mode/type"
+- **Performance** : Pas de phase de détection automatique
 
 #### B. Requête de validation et nettoyage
 
