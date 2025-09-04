@@ -64,30 +64,12 @@ id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_emb
 4. Attendez la fin de l'upload
 5. Vérifiez que le fichier apparaît dans la liste avec la taille attendue (~5MB)
 
-### 1.3 Vérification et test d'accessibilité
+### 1.3 Vérification du fichier uploadé
 
 1. **Vérifier le fichier uploadé** :
    - Cliquez sur le fichier `employees_5mb.csv` pour voir ses détails
    - Notez le chemin complet : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
    - Vérifiez que la taille est d'environ 5MB
-
-2. **Test d'accessibilité simple depuis BigQuery** :
-   - Naviguez vers **BigQuery** dans la GCP Console
-   - Dans l'explorateur, cliquez sur **Créer** > **Table**
-   - **Source** : Google Cloud Storage
-   - **Sélectionner un fichier depuis GCS** : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
-   - **Format de fichier** : CSV
-   
-3. **Validation des permissions** :
-   - Si vous pouvez voir le fichier dans la liste de sélection → Permissions OK
-   - Si erreur "Access Denied" → Contactez votre administrateur GCP
-   - Si le fichier n'apparaît pas → Vérifiez le chemin du bucket
-   
-4. **Test de prévisualisation** :
-   - Dans la configuration de table, cochez **Détection automatique** 
-   - Cliquez sur **Aperçu** (si disponible)
-   - Vérifiez que les données apparaissent avec le délimiteur `;` correctement interprété
-   - Si une seule colonne → Le délimiteur devra être spécifié manuellement
 
 ## Étape 2 : Développement sur Console GCP
 
@@ -98,12 +80,36 @@ Un Data Engineer ou UC (User Case) développe directement sur la **Console GCP**
 ### 2.1 Création du dataset BigQuery
 
 1. Dans la **GCP Console**, accédez à **BigQuery**
-2. Dans l'explorateur, cliquez sur votre projet
+2. Dans l'explorateur, cliquez sur votre projet `lakehouse`
 3. Cliquez sur **Créer un dataset**
 4. Configurez le dataset :
    - **ID du dataset** : `lakehouse_employee_data`
-   - **Emplacement** : Europe (ou selon vos besoins)
+   - **Emplacement** : US (pour correspondre au bucket GCS)
    - **Expiration** : Par défaut ou selon votre politique d'entreprise
+5. Cliquez sur **Créer un dataset**
+
+### 2.1.1 Test d'accessibilité du fichier GCS
+
+Une fois le dataset créé, vérifiez l'accessibilité du fichier CSV :
+
+1. **Test d'accessibilité depuis BigQuery** :
+   - Dans l'explorateur BigQuery, cliquez sur le dataset `lakehouse_employee_data` 
+   - Cliquez sur **+ Créer une table**
+   - **Source** : Google Cloud Storage
+   - **Sélectionner un fichier depuis GCS** : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
+   - **Format de fichier** : CSV
+   
+2. **Validation des permissions** :
+   - Si vous pouvez parcourir et sélectionner le fichier → Permissions OK
+   - Si erreur "Access Denied" → Contactez votre administrateur GCP
+   - Si le fichier n'apparaît pas → Vérifiez le chemin du bucket
+   
+3. **Test de prévisualisation** :
+   - Dans la configuration de table, cochez **Détection automatique** 
+   - Observez l'aperçu du schéma généré automatiquement
+   - Vérifiez que les données apparaissent avec le délimiteur `;` correctement interprété
+   - Si une seule colonne → Le délimiteur devra être spécifié manuellement
+   - **Important** : Ne créez pas encore la table, nous le ferons via SQL à l'étape suivante
 
 ### 2.2 Création de la table avec schéma défini
 
