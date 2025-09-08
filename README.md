@@ -41,6 +41,7 @@ Le tutoriel utilise un fichier CSV d'exemple avec des données d'employés conte
 
 ## 📚 Ressources
 
+- [Bonnes pratiques pour charger, transformer et exporter des données BigQuery](https://cloud.google.com/bigquery/docs/load-transform-export-intro?hl=fr)
 - [Documentation BigQuery](https://cloud.google.com/bigquery/docs)
 - [Documentation Apache Airflow](https://airflow.apache.org/docs/)
 - [Google Cloud Composer](https://cloud.google.com/composer/docs)

@@ -1,5 +1,8 @@
 # Tutoriel : Importer un fichier CSV depuis Google Cloud Storage vers BigQuery
 
+## Référence des bonnes pratiques
+📚 [Bonnes pratiques pour charger, transformer et exporter des données BigQuery](https://cloud.google.com/bigquery/docs/load-transform-export-intro?hl=fr)
+
 ## Contexte
 - **Public cible** : Data Engineers, Data Analysts
 - **Environnement** : GCP Console (environnement DEV)
