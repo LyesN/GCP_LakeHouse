@@ -226,19 +226,93 @@ FROM FILES (
    - Cliquez sur le workspace créé pour ouvrir l'éditeur Dataform intégré
    - Vous accédez maintenant à l'IDE Dataform dans le navigateur
 
-### 3.3 Configuration du projet Dataform
+#### 3.2.4 Récupération du repository en local pour VS Code
 
-#### 3.3.1 Fichier de configuration (workflow_settings.yaml)
+**Objectif** : Cloner le repository GCP Dataform sur votre poste de travail pour développer avec VS Code.
 
-**Important** : Depuis 2024, Google Cloud Dataform utilise `workflow_settings.yaml` au lieu de `dataform.json` pour les nouveaux projets.
+1. **Récupérer l'URL Git du repository** :
+   - Dans l'interface Dataform, cliquez sur l'icône **Settings** (⚙️) en haut à droite
+   - Allez dans l'onglet **Repository settings**
+   - Copiez l'**URL Git** du repository (format : `https://source.developers.google.com/p/PROJECT_ID/r/REPO_NAME`)
 
-Dans l'éditeur Dataform :
+2. **Configurer l'authentification Git pour Google Cloud Source** :
+   ```bash
+   # Configurer l'authentification Git pour Google Cloud Source
+   gcloud auth configure-docker
+   
+   # Générer les credentials Git
+   gcloud init && git config --global credential.'https://source.developers.google.com'.helper gcloud.sh
+   ```
 
-1. **Chercher le fichier de configuration** dans l'explorateur de fichiers à gauche :
-   - **Si vous voyez `workflow_settings.yaml`** : c'est le nouveau format (recommandé)
-   - **Si vous voyez `dataform.json`** : c'est l'ancien format (encore supporté)
+3. **Cloner le repository localement** :
+   ```bash
+   # Créer un dossier pour vos projets Dataform
+   mkdir ~/dataform-projects
+   cd ~/dataform-projects
+   
+   # Cloner le repository (remplacez par votre URL)
+   git clone https://source.developers.google.com/p/lake-471013/r/lakehouse-employees-pipeline
+   
+   # Entrer dans le dossier
+   cd lakehouse-employees-pipeline
+   ```
 
-2. **Pour workflow_settings.yaml** (nouveau format) :
+4. **Installation des dépendances locales** :
+   ```bash
+   # Installation globale du CLI Dataform (si pas déjà fait)
+   npm install -g @dataform/core
+   
+   # Vérifier la version
+   dataform --version
+   ```
+
+5. **Ouvrir avec VS Code** :
+   ```bash
+   # Ouvrir le projet dans VS Code
+   code .
+   ```
+
+6. **Installer les extensions VS Code recommandées** :
+   - **Extension officielle Dataform** : Rechercher "Dataform" par dataform
+   - **Extension avancée** : "Dataform tools" par ashishalex (optionnel)
+   - **BigQuery syntax** : "vscode-dataform-bigquery-syntax" (optionnel)
+
+7. **Vérifier la configuration** :
+   - Dans VS Code, ouvrez le fichier `workflow_settings.yaml` ou `dataform.json`
+   - Vérifiez que la configuration correspond à votre environnement :
+     ```yaml
+     dataformCoreVersion: "3.0.7"
+     defaultProject: "lake-471013"
+     defaultDataset: "lakehouse_employee_data"
+     defaultLocation: "US"
+     ```
+
+8. **Tester la compilation locale** :
+   ```bash
+   # Dans le terminal de VS Code
+   dataform compile
+   ```
+
+**À partir de maintenant, vous pouvez :**
+- ✅ Développer vos transformations SQLX en local avec VS Code
+- ✅ Bénéficier du syntax highlighting et de l'auto-completion
+- ✅ Compiler et tester localement avant de pousser
+- ✅ Utiliser Git pour le versioning de votre code
+- ✅ Synchroniser vos changements avec GCP via `git push`
+
+### 3.3 Développement des transformations avec VS Code
+
+**Remarque** : Nous continuons maintenant le développement en local avec VS Code plutôt qu'avec l'éditeur web GCP.
+
+#### 3.3.1 Configuration du fichier workflow_settings.yaml
+
+**Remarque** : Le fichier de configuration a été créé lors du clonage. Nous le modifions maintenant dans VS Code.
+
+1. **Ouvrir le fichier de configuration** dans VS Code :
+   - **Si `workflow_settings.yaml` existe** (nouveau format) : l'ouvrir
+   - **Si `dataform.json` existe** (ancien format) : l'ouvrir
+
+2. **Modifier workflow_settings.yaml** :
 
 ```yaml
 dataformCoreVersion: "3.0.7"
@@ -253,7 +327,7 @@ vars:
   source_path: "gs://lakehouse-bucket-20250903/employees_5mb.csv"
 ```
 
-3. **Pour dataform.json** (ancien format, si présent) :
+3. **Ou modifier dataform.json** (si c'est le format présent) :
 
 ```json
 {
@@ -271,9 +345,9 @@ vars:
 }
 ```
 
-4. **Après modification** :
-   - Cliquez sur **"Install packages"** (pour workflow_settings.yaml)
-   - Ou **"Save"** (pour dataform.json)
+4. **Sauvegarder les modifications** :
+   - `Ctrl+S` dans VS Code
+   - Les changements sont automatiquement trackés par Git
 
 #### 3.3.2 Création des datasets requis
 
@@ -286,15 +360,22 @@ Avant de continuer, créer les datasets BigQuery nécessaires :
    - `lakehouse_employee_data` (pour les tables finales - déjà créé)
    - `dataform_assertions` (pour les tests qualité)
 
-### 3.4 Création des transformations Dataform
+### 3.4 Création des transformations Dataform dans VS Code
 
 #### 3.4.1 Table source - Ingestion depuis GCS
 
-1. **Créer le dossier sources** :
-   - Clic droit sur `definitions` → **Nouveau dossier** → `sources`
+1. **Créer la structure de dossiers** dans VS Code :
+   ```bash
+   # Dans le terminal VS Code, créer la structure
+   mkdir -p definitions/sources
+   mkdir -p definitions/staging
+   mkdir -p definitions/marts
+   mkdir -p definitions/tests
+   ```
 
 2. **Créer le fichier employees_raw.sqlx** :
-   - Clic droit sur `sources` → **Nouveau fichier** → `employees_raw.sqlx`
+   - Dans VS Code : **File** → **New File** 
+   - Sauvegarder sous `definitions/sources/employees_raw.sqlx`
    - **Contenu du fichier** :
 
 ```sql
@@ -349,11 +430,9 @@ FROM FILES (
 
 #### 3.4.2 Table de staging - Nettoyage des données
 
-1. **Créer le dossier staging** :
-   - Clic droit sur `definitions` → **Nouveau dossier** → `staging`
-
-2. **Créer le fichier employees_clean.sqlx** :
-   - Clic droit sur `staging` → **Nouveau fichier** → `employees_clean.sqlx`
+1. **Créer le fichier employees_clean.sqlx** :
+   - Dans VS Code : **File** → **New File**
+   - Sauvegarder sous `definitions/staging/employees_clean.sqlx`
    - **Contenu du fichier** :
 
 ```sql
@@ -439,11 +518,9 @@ WHERE id IS NOT NULL
 
 #### 3.4.3 Tables métier (Data Marts)
 
-1. **Créer le dossier marts** :
-   - Clic droit sur `definitions` → **Nouveau dossier** → `marts`
-
-2. **Créer dim_employees.sqlx** :
-   - Clic droit sur `marts` → **Nouveau fichier** → `dim_employees.sqlx`
+1. **Créer dim_employees.sqlx** :
+   - Dans VS Code : **File** → **New File**
+   - Sauvegarder sous `definitions/marts/dim_employees.sqlx`
 
 ```sql
 config {
@@ -501,7 +578,9 @@ WHERE departement IS NOT NULL
   AND statut IN ('ACTIF', 'ACTIVE', 'EN_POSTE')
 ```
 
-3. **Créer fact_salaries.sqlx** :
+2. **Créer fact_salaries.sqlx** :
+   - Dans VS Code : **File** → **New File**
+   - Sauvegarder sous `definitions/marts/fact_salaries.sqlx`
 
 ```sql
 config {
@@ -554,9 +633,9 @@ WHERE salaire IS NOT NULL
 
 ### 3.5 Tests de qualité des données
 
-1. **Créer le fichier tests/data_quality.sqlx** :
-   - Créer le dossier `tests` dans `definitions`
-   - Créer le fichier `data_quality.sqlx`
+1. **Créer le fichier data_quality.sqlx** :
+   - Dans VS Code : **File** → **New File**
+   - Sauvegarder sous `definitions/tests/data_quality.sqlx`
 
 ```sql
 config {
@@ -577,27 +656,74 @@ FROM (
 )
 ```
 
-### 3.6 Compilation et exécution du pipeline
+### 3.6 Compilation et test en local avec VS Code
 
-#### 3.6.1 Compilation du projet
+#### 3.6.1 Compilation locale
 
-1. **Compiler le projet** :
-   - Cliquez sur **Compiler** en haut de l'éditeur
-   - Vérifiez qu'il n'y a pas d'erreurs de syntaxe
-   - Les dépendances sont automatiquement calculées
+1. **Compiler le projet** dans le terminal VS Code :
+   ```bash
+   # Compiler et vérifier la syntaxe
+   dataform compile
+   
+   # Afficher les dépendances (optionnel)
+   dataform compile --json
+   ```
 
-#### 3.6.2 Exécution du workflow
+2. **Vérifier les résultats** :
+   - VS Code affiche les erreurs directement dans l'éditeur
+   - La compilation vérifie la syntaxe et les dépendances
+   - Les erreurs sont soulignées avec des détails
 
-1. **Exécuter le workflow complet** :
-   - Cliquez sur **Exécuter** → **Exécuter toutes les actions**
-   - Sélectionnez les actions à exécuter dans l'ordre :
+#### 3.6.2 Tests locaux
+
+1. **Tester les assertions** :
+   ```bash
+   # Tester les assertions de qualité
+   dataform test
+   ```
+
+2. **Dry-run pour validation** :
+   ```bash
+   # Simulation d'exécution (pas d'écriture réelle en base)
+   dataform run --dry-run
+   ```
+
+#### 3.6.3 Commit et push vers GCP
+
+1. **Commit des changements** :
+   ```bash
+   # Ajouter tous les fichiers
+   git add .
+   
+   # Commit avec un message descriptif  
+   git commit -m "Ajout pipeline ingestion employés avec transformations et tests"
+   
+   # Push vers le repository GCP
+   git push origin main
+   ```
+
+2. **Vérification dans la Console GCP** :
+   - Retourner dans l'interface Dataform GCP
+   - Les changements apparaissent automatiquement
+   - Le code est maintenant disponible pour exécution
+
+#### 3.6.4 Exécution depuis la Console GCP
+
+1. **Retour à l'interface Dataform** :
+   - Ouvrir la Console GCP → Dataform
+   - Sélectionner votre repository `lakehouse-employees-pipeline`
+   - Les fichiers créés en local sont maintenant visibles
+
+2. **Exécuter le workflow** :
+   - Cliquer sur **Exécuter** → **Exécuter toutes les actions**
+   - Sélectionner les actions dans l'ordre :
      1. `load_employees_raw`
      2. `employees_clean` 
      3. `employees_data_quality_tests`
      4. `dim_employees`
      5. `fact_salaries`
 
-2. **Suivre l'exécution** :
+3. **Suivre l'exécution** :
    - L'interface affiche le statut en temps réel
    - Les logs détaillés sont disponibles pour chaque action
    - Les erreurs sont mises en évidence avec des détails
