@@ -228,21 +228,40 @@ FROM FILES (
 
 ### 3.3 Configuration du projet Dataform
 
-#### 3.3.1 Fichier dataform.json
+#### 3.3.1 Fichier de configuration (workflow_settings.yaml)
 
-Dans l'éditeur Dataform, créez/modifiez le fichier `dataform.json` :
+**Important** : Depuis 2024, Google Cloud Dataform utilise `workflow_settings.yaml` au lieu de `dataform.json` pour les nouveaux projets.
 
-1. **Cliquer sur le fichier `dataform.json`** dans l'explorateur de fichiers à gauche
-2. **Remplacer le contenu** par :
+Dans l'éditeur Dataform :
+
+1. **Chercher le fichier de configuration** dans l'explorateur de fichiers à gauche :
+   - **Si vous voyez `workflow_settings.yaml`** : c'est le nouveau format (recommandé)
+   - **Si vous voyez `dataform.json`** : c'est l'ancien format (encore supporté)
+
+2. **Pour workflow_settings.yaml** (nouveau format) :
+
+```yaml
+dataformCoreVersion: "3.0.7"
+defaultProject: "lake-471013"
+defaultDataset: "lakehouse_employee_data"
+defaultLocation: "US" 
+defaultAssertionDataset: "dataform_assertions"
+vars:
+  environment: "dev"
+  gcs_bucket: "lakehouse-bucket-20250903"
+  source_file: "employees_5mb.csv"
+  source_path: "gs://lakehouse-bucket-20250903/employees_5mb.csv"
+```
+
+3. **Pour dataform.json** (ancien format, si présent) :
 
 ```json
 {
-  "defaultProject": "lake-471013",
-  "defaultDataset": "lakehouse_employee_data",
+  "warehouse": "bigquery",
+  "defaultDatabase": "lake-471013",
+  "defaultSchema": "lakehouse_employee_data",
   "defaultLocation": "US",
   "assertionSchema": "dataform_assertions",
-  "warehouse": "bigquery",
-  "defaultTags": ["lakehouse", "employees"],
   "vars": {
     "environment": "dev",
     "gcs_bucket": "lakehouse-bucket-20250903",
@@ -251,6 +270,10 @@ Dans l'éditeur Dataform, créez/modifiez le fichier `dataform.json` :
   }
 }
 ```
+
+4. **Après modification** :
+   - Cliquez sur **"Install packages"** (pour workflow_settings.yaml)
+   - Ou **"Save"** (pour dataform.json)
 
 #### 3.3.2 Création des datasets requis
 
@@ -669,3 +692,222 @@ ORDER BY start_time DESC
 - **Monitoring** : Surveillance des métriques de qualité
 
 Cette implémentation via la Console GCP offre une interface graphique intuitive pour développer, tester et orchestrer votre pipeline de données BigQuery avec Dataform.
+
+## Annexe : Développement local avec VS Code
+
+### A.1 Configuration de l'environnement local
+
+**Prérequis** :
+- Visual Studio Code installé
+- Node.js (version 14+ recommandée)
+- Google Cloud CLI configuré
+- Git installé
+
+#### A.1.1 Installation du CLI Dataform
+
+```bash
+# Installation globale du CLI Dataform
+npm install -g @dataform/core
+
+# Vérification de l'installation
+dataform --version
+```
+
+#### A.1.2 Extensions VS Code recommandées
+
+1. **Extension officielle Dataform** :
+   - **Nom** : "Dataform" par dataform
+   - **Fonctionnalités** : Syntax highlighting, compilation, intellisense pour SQLX
+   - **Installation** : Dans VS Code → Extensions → Rechercher "Dataform"
+
+2. **Extension avancée (optionnelle)** :
+   - **Nom** : "Dataform tools" par ashishalex  
+   - **Fonctionnalités supplémentaires** : 
+     - Compiled query preview
+     - Dry run statistics
+     - Dependency graphs
+     - Cost estimation
+     - Auto-completion avancée
+
+3. **Extension BigQuery (optionnelle)** :
+   - **Nom** : "vscode-dataform-bigquery-syntax"
+   - **Spécialité** : Syntax highlighting optimisé pour BigQuery dans les fichiers .sqlx
+
+#### A.1.3 Authentification Google Cloud
+
+```bash
+# Authentification avec votre compte GCP
+gcloud auth login
+
+# Configuration du projet par défaut
+gcloud config set project lake-471013
+
+# Authentification Application Default Credentials (ADC)
+gcloud auth application-default login
+```
+
+### A.2 Création du projet local
+
+#### A.2.1 Initialisation du projet
+
+```bash
+# Créer un dossier pour votre projet
+mkdir lakehouse-dataform-local
+cd lakehouse-dataform-local
+
+# Initialiser le projet Dataform
+dataform init . --default-database lake-471013 --default-location US
+```
+
+#### A.2.2 Structure générée
+
+```
+lakehouse-dataform-local/
+├── workflow_settings.yaml    # Configuration principale
+├── definitions/              # Vos transformations SQL
+├── includes/                 # Fonctions JavaScript communes
+└── .gitignore               # Configuration Git
+```
+
+#### A.2.3 Configuration workflow_settings.yaml
+
+```yaml
+dataformCoreVersion: "3.0.7"
+defaultProject: "lake-471013"
+defaultDataset: "lakehouse_employee_data"
+defaultLocation: "US"
+defaultAssertionDataset: "dataform_assertions"
+vars:
+  environment: "dev"
+  gcs_bucket: "lakehouse-bucket-20250903"
+  source_file: "employees_5mb.csv"
+  source_path: "gs://lakehouse-bucket-20250903/employees_5mb.csv"
+```
+
+### A.3 Développement local
+
+#### A.3.1 Ouvrir le projet dans VS Code
+
+```bash
+# Ouvrir VS Code dans le dossier du projet
+code .
+```
+
+#### A.3.2 Créer les mêmes transformations qu'en console
+
+**Structure recommandée** :
+```
+definitions/
+├── sources/
+│   └── employees_raw.sqlx
+├── staging/  
+│   └── employees_clean.sqlx
+├── marts/
+│   ├── dim_employees.sqlx
+│   └── fact_salaries.sqlx
+└── tests/
+    └── data_quality.sqlx
+```
+
+#### A.3.3 Avantages du développement local
+
+- **Syntax highlighting** : Coloration syntaxique pour .sqlx
+- **Auto-completion** : Suggestions intelligentes
+- **Compilation temps réel** : Détection d'erreurs instantanée
+- **Git intégré** : Versioning naturel avec VS Code
+- **Extensions** : Outils avancés (dependency graph, cost estimation)
+
+### A.4 Commandes CLI utiles
+
+#### A.4.1 Compilation et validation
+
+```bash
+# Compiler le projet (vérifier la syntaxe)
+dataform compile
+
+# Tester les assertions
+dataform test
+
+# Afficher les dépendances
+dataform compile --json | jq '.tables[].dependencyTargets'
+```
+
+#### A.4.2 Exécution locale (dry-run)
+
+```bash
+# Exécution dry-run (simulation)
+dataform run --dry-run
+
+# Exécution d'une table spécifique
+dataform run --actions=employees_clean
+
+# Exécution avec tags
+dataform run --tags=staging
+```
+
+### A.5 Déploiement vers GCP
+
+#### A.5.1 Via Git (recommandé)
+
+1. **Connecter le repository local à un repository Git** :
+```bash
+git init
+git add .
+git commit -m "Initial Dataform project"
+git remote add origin https://github.com/votre-org/lakehouse-dataform.git
+git push -u origin main
+```
+
+2. **Connecter Dataform GCP au repository Git** :
+   - Dans Console GCP → Dataform → Repository Settings
+   - Configurer Git connection avec votre repository
+
+#### A.5.2 Synchronisation manuelle
+
+1. **Copier les fichiers** depuis VS Code vers l'éditeur Dataform Console
+2. **Compiler et tester** dans la console GCP
+3. **Déployer** via les workflows configurés
+
+### A.6 Workflow de développement recommandé
+
+#### A.6.1 Cycle de développement
+
+1. **Développement local** : Écrire et tester en VS Code
+2. **Compilation locale** : `dataform compile` et `dataform test`
+3. **Commit Git** : Versioning des changements
+4. **Synchronisation GCP** : Push vers repository connecté
+5. **Déploiement** : Exécution via Console GCP ou CI/CD
+
+#### A.6.2 Bonnes pratiques
+
+- **Branches Git** : feature branches pour nouveaux développements
+- **Tests locaux** : Validation avant push
+- **Documentation** : Maintenir les descriptions dans les configs
+- **Variables d'environnement** : Séparer dev/staging/prod
+
+### A.7 Dépannage
+
+#### A.7.1 Problèmes courants
+
+**Extension VS Code qui plante** :
+```
+Erreur: "Dataform Language Server server crashed"
+Solution: Vérifier que @dataform/core est installé globalement
+npm list -g @dataform/core
+```
+
+**Problème d'authentification** :
+```bash
+# Re-authentifier ADC
+gcloud auth application-default login
+
+# Vérifier les permissions
+gcloud auth list
+```
+
+**Erreurs de compilation** :
+- Vérifier la syntaxe des fichiers .sqlx
+- Valider les références entre tables
+- Contrôler la configuration workflow_settings.yaml
+
+Le développement local avec VS Code offre une expérience plus riche pour les développeurs familiers avec les outils de développement modernes, tout en conservant la facilité de déploiement vers Google Cloud Platform.
