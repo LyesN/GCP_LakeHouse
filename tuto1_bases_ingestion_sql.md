@@ -144,7 +144,13 @@ CREATE TABLE `lake-471013.lakehouse_employee_data.employees` (
 #### A. Requête de chargement depuis GCS
 
 ```sql
--- Flux d'ingestion principal depuis GCS avec schéma forcé
+-- Flux d'ingestion CSV vers BigQuery
+-- Fichier source : employees
+-- Table cible : employees_5mb.csv
+-- Truncate avant bulk
+
+TRUNCATE TABLE `lake-471013.lakehouse_employee_data.employees`;
+
 LOAD DATA INTO `lake-471013.lakehouse_employee_data.employees`
 (id INT64, nom STRING, prenom STRING, email STRING, age INT64, ville STRING, 
  code_postal STRING, telephone STRING, salaire FLOAT64, departement STRING, 

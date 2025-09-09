@@ -1,0 +1,29 @@
+config {
+  type: "table",
+  schema: "lakehouse_employee_data",
+  name: "employees",
+  tags: ["etl", "staging"]
+}
+
+select
+  cast(id as int64) as id,
+  nom,
+  prenom,
+  email,
+  cast(age as int64) as age,
+  ville,
+  code_postal,
+  telephone,
+  cast(salaire as float64) as salaire,
+  departement,
+  cast(date_embauche as date) as date_embauche,
+  statut,
+  cast(score as float64) as score,
+  cast(latitude as float64) as latitude,
+  cast(longitude as float64) as longitude,
+  commentaire,
+  reference,
+  niveau,
+  categorie,
+  cast(timestamp as timestamp) as timestamp
+from `lake-471013.lakehouse_employee_data.employees_csv`
