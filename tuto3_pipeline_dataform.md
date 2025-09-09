@@ -21,12 +21,12 @@ L'objectif est de mettre en place le pipeline suivant :
 
 La première étape consiste à créer une table externe dans BigQuery qui référence notre fichier `employees.csv` stocké sur GCS. Cela nous permet d'interroger les données du fichier sans avoir à les charger au préalable.
 
-1.  **Créez un ensemble de données (dataset)** dans BigQuery nommé `stg_employees`.
+1.  **Créez un ensemble de données (dataset)** dans BigQuery nommé `STG`.
 2.  Utilisez le script SQL suivant pour créer la table externe. Ce script doit être exécuté directement dans l'éditeur de requêtes BigQuery.
 
     **Script : `create_external_table_employees.sql`**
     ```sql
-    CREATE OR REPLACE EXTERNAL TABLE `stg_employees.employees`
+    CREATE OR REPLACE EXTERNAL TABLE `STG.employees`
     (
       employee_id INT64,
       first_name STRING,
@@ -43,13 +43,13 @@ La première étape consiste à créer une table externe dans BigQuery qui réf�
 
 3.  **Explication du script :**
     *   `CREATE OR REPLACE EXTERNAL TABLE` : Crée une nouvelle table externe ou la remplace si elle existe déjà.
-    *   `stg_employees.employees` : Le nom complet de notre table dans la couche de staging.
+    *   `STG.employees` : Le nom complet de notre table dans la couche de staging.
     *   `OPTIONS(...)` :
         *   `format = 'CSV'` : Spécifie que le fichier source est au format CSV.
         *   `uris = ['...']` : Indique l'emplacement du fichier source dans GCS. **N'oubliez pas de remplacer `votre-bucket-unique` par le nom de votre bucket.**
         *   `skip_leading_rows = 1` : Ignore la première ligne du fichier CSV, qui est généralement l'en-tête.
 
-Après l'exécution, vous pouvez interroger `stg_employees.employees` comme n'importe quelle autre table BigQuery.
+Après l'exécution, vous pouvez interroger `STG.employees` comme n'importe quelle autre table BigQuery.
 
 ## Étape 2 : Charger les données dans l'ODS avec Dataform
 
@@ -78,7 +78,7 @@ Maintenant que nos données sources sont accessibles via la table externe, nous 
         email,
         hire_date
     FROM
-        ${ref("stg_employees", "employees")}
+        ${ref("STG", "employees")}
 
     ```
 
@@ -87,7 +87,7 @@ Maintenant que nos données sources sont accessibles via la table externe, nous 
         *   `type: "table"` : Indique à Dataform de matérialiser le résultat de la requête dans une table BigQuery.
         *   `schema: "ods_employees"` : Spécifie que la table doit être créée dans le dataset `ods_employees`.
         *   `name: "employees"` : Définit le nom de la table de destination.
-    *   `${ref("stg_employees", "employees")}` : La fonction `ref()` est cruciale. Elle indique à Dataform que ce script dépend de la table `employees` dans le dataset `stg_employees`. Dataform utilisera cette information pour construire le graphe de dépendances (DAG) de votre pipeline.
+    *   `${ref("STG", "employees")}` : La fonction `ref()` est cruciale. Elle indique à Dataform que ce script dépend de la table `employees` dans le dataset `STG`. Dataform utilisera cette information pour construire le graphe de dépendances (DAG) de votre pipeline.
 
 ## Étape 3 : Exécuter le pipeline Dataform
 
@@ -96,14 +96,14 @@ Maintenant que nos données sources sont accessibles via la table externe, nous 
 3.  Dataform va :
     *   Analyser les dépendances.
     *   Exécuter la requête définie dans `load_employees.sqlx`.
-    *   Créer (ou remplacer) la table `ods_employees.employees` avec les données provenant de la table externe `stg_employees.employees`.
+    *   Créer (ou remplacer) la table `ods_employees.employees` avec les données provenant de la table externe `STG.employees`.
 
 ## Conclusion
 
 Félicitations ! Vous avez créé un pipeline ELT (Extract, Load, Transform) simple et reproductible.
 
 *   **Extraction (Extract)** : Les données sont disponibles dans GCS.
-*   **Chargement (Load)** : La table externe `stg_employees.employees` rend les données accessibles à BigQuery instantanément.
+*   **Chargement (Load)** : La table externe `STG.employees` rend les données accessibles à BigQuery instantanément.
 *   **Transformation (Transform)** : Dataform orchestre le chargement final de la couche STG vers la couche ODS, où des transformations plus complexes pourraient être ajoutées à l'avenir.
 
 Cette approche sépare clairement la source de données brute (GCS), la couche d'accès (table externe STG) et la couche de données structurées (table ODS), tout en bénéficiant de la gestion des dépendances et de l'orchestration offertes par Dataform.
