@@ -12,7 +12,7 @@
 ## Paramètres du projet
 - **Projet GCP** : `LakeHouse`
 - **BigQuery name** : `lake-471013`
-- **Dataset BigQuery** : `lakehouse_employee_data`
+- **Dataset BigQuery** : `02_ODS`
 - **Bucket GCS** : `lakehouse-bucket-20250903`
 - **Fichier CSV** : `employees.csv`
 - **Chemin complet** : `gs://lakehouse-bucket-20250903/employees.csv`
@@ -75,7 +75,7 @@ id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_emb
 2. Dans l'explorateur, cliquez sur votre projet `lake-471013`
 3. Cliquez sur **Créer un dataset**
 4. Configurez le dataset :
-   - **ID du dataset** : `lakehouse_employee_data`
+   - **ID du dataset** : `02_ODS`
    - **Emplacement** : US (pour correspondre au bucket GCS)
    - **Expiration** : Par défaut ou selon votre politique d'entreprise
 5. Cliquez sur **Créer un dataset**
@@ -85,7 +85,7 @@ id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_emb
 Une fois le dataset créé, vérifiez l'accessibilité du fichier CSV :
 
 1. **Test d'accessibilité depuis BigQuery** :
-   - Dans l'explorateur BigQuery, cliquez sur le dataset `lakehouse_employee_data` 
+   - Dans l'explorateur BigQuery, cliquez sur le dataset `02_ODS` 
    - Cliquez sur **+ Créer une table**
    - **Source** : Google Cloud Storage
    - **Parcourir** : chercher le fichier dans le bucket `lakehouse-bucket-20250903`
@@ -107,7 +107,7 @@ Une fois le dataset créé, vérifiez l'accessibilité du fichier CSV :
 
 ```sql
 -- Création de la table employees avec schéma typé
-CREATE TABLE `lake-471013.lakehouse_employee_data.employees` (
+CREATE TABLE `lake-471013.02_ODS.employees` (
   id INT64 NOT NULL,
   nom STRING,
   prenom STRING,
@@ -136,7 +136,7 @@ CREATE TABLE `lake-471013.lakehouse_employee_data.employees` (
 
 3. **Exécuter la requête** :
    - Cliquez sur **Exécuter** (bouton bleu) ou utilisez Ctrl+Enter
-   - Vérifiez que la table apparaît dans l'explorateur sous `lakehouse_employee_data`
+   - Vérifiez que la table apparaît dans l'explorateur sous `02_ODS`
    - La table est maintenant créée et prête pour l'ingestion
 
 ### 2.3 Développement du flux d'ingestion en SQL
@@ -149,9 +149,9 @@ CREATE TABLE `lake-471013.lakehouse_employee_data.employees` (
 -- Table cible : employees.csv
 -- Truncate avant bulk
 
-TRUNCATE TABLE `lake-471013.lakehouse_employee_data.employees`;
+TRUNCATE TABLE `lake-471013.02_ODS.employees`;
 
-LOAD DATA INTO `lake-471013.lakehouse_employee_data.employees`
+LOAD DATA INTO `lake-471013.02_ODS.employees`
 (id INT64, nom STRING, prenom STRING, email STRING, age INT64, ville STRING, 
  code_postal STRING, telephone STRING, salaire FLOAT64, departement STRING, 
  date_embauche DATE, statut STRING, score FLOAT64, latitude FLOAT64, 
