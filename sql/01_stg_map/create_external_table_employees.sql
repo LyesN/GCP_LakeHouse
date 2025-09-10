@@ -25,5 +25,5 @@ OPTIONS (
   format = 'CSV',
   field_delimiter = ';',
   skip_leading_rows = 1,
-  uris = ['gs://lakehouse-bucket-20250903/employees_5mb.csv']
+  uris = ['gs://lakehouse-bucket-20250903/employees.csv']
 );

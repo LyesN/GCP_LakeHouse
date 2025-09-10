@@ -14,8 +14,8 @@
 - **BigQuery name** : `lake-471013`
 - **Dataset BigQuery** : `lakehouse_employee_data`
 - **Bucket GCS** : `lakehouse-bucket-20250903`
-- **Fichier CSV** : `employees_5mb.csv`
-- **Chemin complet** : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
+- **Fichier CSV** : `employees.csv`
+- **Chemin complet** : `gs://lakehouse-bucket-20250903/employees.csv`
 
 ## Prérequis
 - Permissions appropriées sur BigQuery et GCS
@@ -54,15 +54,15 @@ id;nom;prenom;email;age;ville;code_postal;telephone;salaire;departement;date_emb
 
 1. Sélectionnez le bucket `lakehouse-bucket-20250903` créé
 2. Cliquez sur **Importer des fichiers**
-3. Sélectionnez votre fichier `employees_5mb.csv` depuis votre système local
+3. Sélectionnez votre fichier `employees.csv` depuis votre système local
 4. Attendez la fin de l'upload
 5. Vérifiez que le fichier apparaît dans la liste avec la taille attendue (~5MB)
 
 ### 1.3 Vérification du fichier uploadé
 
 1. **Vérifier le fichier uploadé** :
-   - Cliquez sur le fichier `employees_5mb.csv` pour voir ses détails
-   - Notez le chemin complet : `gs://lakehouse-bucket-20250903/employees_5mb.csv`
+   - Cliquez sur le fichier `employees.csv` pour voir ses détails
+   - Notez le chemin complet : `gs://lakehouse-bucket-20250903/employees.csv`
    - Vérifiez que la taille est d'environ 5MB
 
 ## Étape 2 : Développement sur Console GCP
@@ -146,7 +146,7 @@ CREATE TABLE `lake-471013.lakehouse_employee_data.employees` (
 ```sql
 -- Flux d'ingestion CSV vers BigQuery
 -- Fichier source : employees
--- Table cible : employees_5mb.csv
+-- Table cible : employees.csv
 -- Truncate avant bulk
 
 TRUNCATE TABLE `lake-471013.lakehouse_employee_data.employees`;
@@ -161,7 +161,7 @@ FROM FILES (
   format = 'CSV',
   field_delimiter = ';',
   skip_leading_rows = 1,
-  uris = ['gs://lakehouse-bucket-20250903/employees_5mb.csv']
+  uris = ['gs://lakehouse-bucket-20250903/employees.csv']
 );
 ```
 
