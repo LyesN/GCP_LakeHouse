@@ -1,4 +1,4 @@
-CREATE OR REPLACE EXTERNAL TABLE `lake-471013.lakehouse_employee_data.employees_csv`
+CREATE OR REPLACE EXTERNAL TABLE `01_STG.employees`
 (
   id INT64,
   nom STRING,
@@ -24,6 +24,6 @@ CREATE OR REPLACE EXTERNAL TABLE `lake-471013.lakehouse_employee_data.employees_
 OPTIONS (
   format = 'CSV',
   field_delimiter = ';',
-  skip_leading_rows = 1,
-  uris = ['gs://lakehouse-bucket-20250903/employees.csv']
+  uris = ['gs://lakehouse-bucket-20250903/employees.csv'], -- Bucket du projet LakeHouse
+  skip_leading_rows = 1
 );
