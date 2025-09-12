@@ -13,7 +13,7 @@ L'objectif est de mettre en place le pipeline suivant :
 ## Prérequis
 
 *   Un projet Google Cloud avec BigQuery et Cloud Storage activés.
-*   Un bucket GCS. Pour ce tutoriel, nous utiliserons un bucket nommé `gs://votre-bucket-unique/`.
+*   Un bucket GCS. Pour ce tutoriel, nous utiliserons le bucket `gs://lakehouse-bucket-20250903/`.
 *   Un fichier `employees.csv` téléversé à la racine de votre bucket.
 *   Un repository Dataform connecté à votre projet GCP.
 
@@ -28,15 +28,31 @@ La première étape consiste à créer une table externe dans BigQuery qui réf�
     ```sql
     CREATE OR REPLACE EXTERNAL TABLE `STG.employees`
     (
-      employee_id INT64,
-      first_name STRING,
-      last_name STRING,
+      id INT64,
+      nom STRING,
+      prenom STRING,
       email STRING,
-      hire_date DATE
+      age INT64,
+      ville STRING,
+      code_postal STRING,
+      telephone STRING,
+      salaire FLOAT64,
+      departement STRING,
+      date_embauche DATE,
+      statut STRING,
+      score FLOAT64,
+      latitude FLOAT64,
+      longitude FLOAT64,
+      commentaire STRING,
+      reference STRING,
+      niveau STRING,
+      categorie STRING,
+      timestamp TIMESTAMP
     )
     OPTIONS (
       format = 'CSV',
-      uris = ['gs://votre-bucket-unique/employees.csv'], -- Remplacez par le chemin de votre bucket
+      field_delimiter = ';',
+      uris = ['gs://lakehouse-bucket-20250903/employees.csv'], -- Bucket du projet LakeHouse
       skip_leading_rows = 1
     );
     ```
@@ -46,7 +62,8 @@ La première étape consiste à créer une table externe dans BigQuery qui réf�
     *   `STG.employees` : Le nom complet de notre table dans la couche de staging.
     *   `OPTIONS(...)` :
         *   `format = 'CSV'` : Spécifie que le fichier source est au format CSV.
-        *   `uris = ['...']` : Indique l'emplacement du fichier source dans GCS. **N'oubliez pas de remplacer `votre-bucket-unique` par le nom de votre bucket.**
+        *   `uris = ['...']` : Indique l'emplacement du fichier source dans GCS (`gs://lakehouse-bucket-20250903/employees.csv`).
+        *   `field_delimiter = ';'` : Spécifie que le délimiteur des champs CSV est le point-virgule.
         *   `skip_leading_rows = 1` : Ignore la première ligne du fichier CSV, qui est généralement l'en-tête.
 
 Après l'exécution, vous pouvez interroger `STG.employees` comme n'importe quelle autre table BigQuery.
@@ -55,7 +72,7 @@ Après l'exécution, vous pouvez interroger `STG.employees` comme n'importe quel
 
 Maintenant que nos données sources sont accessibles via la table externe, nous allons utiliser Dataform pour les charger dans une table matérialisée dans notre couche ODS.
 
-1.  **Créez un ensemble de données (dataset)** dans BigQuery nommé `ods_employees`.
+1.  **Créez un ensemble de données (dataset)** dans BigQuery nommé `02_ODS`.
 2.  Dans votre repository Dataform, créez un nouveau fichier SQLX dans le répertoire `definitions/` nommé `load_employees.sqlx`.
 3.  Copiez le contenu suivant dans votre fichier.
 
@@ -63,20 +80,38 @@ Maintenant que nos données sources sont accessibles via la table externe, nous 
     ```sqlx
     -- Fichier : definitions/load_employees.sqlx
 
-    -- Configuration pour créer une table dans le schéma "ods_employees"
+    -- Configuration pour créer une table dans le schéma "02_ODS"
     config {
       type: "table",
-      schema: "ods_employees",
+      schema: "02_ODS",
       name: "employees"
     }
 
     -- Sélectionne les données depuis la table externe de staging
     SELECT
-        employee_id,
-        first_name,
-        last_name,
+        id,
+        nom,
+        prenom,
         email,
-        hire_date
+        age,
+        ville,
+        code_postal,
+        telephone,
+        salaire,
+        departement,
+        date_embauche,
+        statut,
+        score,
+        latitude,
+        longitude,
+        commentaire,
+        reference,
+        niveau,
+        categorie,
+        timestamp,
+        -- Métadonnées d'ingestion
+        CURRENT_TIMESTAMP() AS ingestion_date,
+        'gs://lakehouse-bucket-20250903/employees.csv' AS source_file
     FROM
         ${ref("STG", "employees")}
 
@@ -85,7 +120,7 @@ Maintenant que nos données sources sont accessibles via la table externe, nous 
 4.  **Explication du script :**
     *   `config { ... }` : Le bloc de configuration Dataform.
         *   `type: "table"` : Indique à Dataform de matérialiser le résultat de la requête dans une table BigQuery.
-        *   `schema: "ods_employees"` : Spécifie que la table doit être créée dans le dataset `ods_employees`.
+        *   `schema: "02_ODS"` : Spécifie que la table doit être créée dans le dataset `02_ODS`.
         *   `name: "employees"` : Définit le nom de la table de destination.
     *   `${ref("STG", "employees")}` : La fonction `ref()` est cruciale. Elle indique à Dataform que ce script dépend de la table `employees` dans le dataset `STG`. Dataform utilisera cette information pour construire le graphe de dépendances (DAG) de votre pipeline.
 
@@ -96,7 +131,7 @@ Maintenant que nos données sources sont accessibles via la table externe, nous 
 3.  Dataform va :
     *   Analyser les dépendances.
     *   Exécuter la requête définie dans `load_employees.sqlx`.
-    *   Créer (ou remplacer) la table `ods_employees.employees` avec les données provenant de la table externe `STG.employees`.
+    *   Créer (ou remplacer) la table `02_ODS.employees` avec les données provenant de la table externe `STG.employees`.
 
 ## Conclusion
 
