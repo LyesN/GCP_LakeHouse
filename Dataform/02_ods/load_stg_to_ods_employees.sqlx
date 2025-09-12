@@ -1,29 +1,36 @@
+-- Fichier : definitions/load_employees.sqlx
+
+-- Configuration pour créer une table dans le schéma "02_ODS"
 config {
   type: "table",
-  schema: "lakehouse_employee_data",
-  name: "employees",
-  tags: ["etl", "staging"]
+  schema: "02_ODS",
+  name: "employees"
 }
 
-select
-  cast(id as int64) as id,
-  nom,
-  prenom,
-  email,
-  cast(age as int64) as age,
-  ville,
-  code_postal,
-  telephone,
-  cast(salaire as float64) as salaire,
-  departement,
-  cast(date_embauche as date) as date_embauche,
-  statut,
-  cast(score as float64) as score,
-  cast(latitude as float64) as latitude,
-  cast(longitude as float64) as longitude,
-  commentaire,
-  reference,
-  niveau,
-  categorie,
-  cast(timestamp as timestamp) as timestamp
-from `lake-471013.lakehouse_employee_data.employees_csv`
+-- Sélectionne les données depuis la table externe de staging
+SELECT
+    id,
+    nom,
+    prenom,
+    email,
+    age,
+    ville,
+    code_postal,
+    telephone,
+    salaire,
+    departement,
+    date_embauche,
+    statut,
+    score,
+    latitude,
+    longitude,
+    commentaire,
+    reference,
+    niveau,
+    categorie,
+    timestamp,
+    -- Métadonnées d'ingestion
+    CURRENT_TIMESTAMP() AS ingestion_date,
+    'gs://lakehouse-bucket-20250903/employees.csv' AS source_file
+FROM
+    `01_STG.employees`
