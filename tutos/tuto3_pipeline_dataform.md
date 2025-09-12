@@ -113,7 +113,7 @@ Maintenant que nos données sources sont accessibles via la table externe, nous 
         CURRENT_TIMESTAMP() AS ingestion_date,
         'gs://lakehouse-bucket-20250903/employees.csv' AS source_file
     FROM
-        ${ref("01_STG", "employees")}
+        `01_STG.employees`
 
     ```
 
@@ -122,7 +122,7 @@ Maintenant que nos données sources sont accessibles via la table externe, nous 
         *   `type: "table"` : Indique à Dataform de matérialiser le résultat de la requête dans une table BigQuery.
         *   `schema: "02_ODS"` : Spécifie que la table doit être créée dans le dataset `02_ODS`.
         *   `name: "employees"` : Définit le nom de la table de destination.
-    *   `${ref("01_STG", "employees")}` : La fonction `ref()` est cruciale. Elle indique à Dataform que ce script dépend de la table `employees` dans le dataset `01_STG`. Dataform utilisera cette information pour construire le graphe de dépendances (DAG) de votre pipeline.
+    *   `\`01_STG.employees\`` : Référence directe à la table externe. Comme cette table est créée en dehors de Dataform (table externe BigQuery), nous utilisons une référence directe plutôt que la fonction `ref()` qui est réservée aux tables gérées par Dataform.
 
 ## Étape 3 : Exécuter le pipeline Dataform
 
