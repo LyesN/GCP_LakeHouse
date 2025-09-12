@@ -8,20 +8,22 @@ Les developements du projets sont etrictement limités à ces srvices GCP
  - Cloud run
  
  
-Patterns
- description
+Patterns 1
+ 
+  description
  - ingection d'un fichier csv
- - raw : csv fine -> Stagig : table externe Bigquery -> ODS : integration Dataform
+ - raw : csv file -> Stagig : table externe Bigquery -> ODS : integration Dataform
   
  avantages :
  - Traitement full Bigquery
  - Pas d'autre brique processing engagée
  - Garentie un linéage et une observabilité de bout en bout
  
- template d'implementation :
-  - sql\01_stg_map\create_external_table_employees.sql
-  - sql\02_ods_load\load_employees.sqlx
-  - 
+ template des livrables :
+  - bigquery\00_ddl\create_external_table_stg_employees.sql
+  - bigquery\00_ddl\create_table_ods_employees.sql
+  - Dataform\02_ods\load_stg_to_ods_employees.sqlx
   
  tutoriels : 
- - tuto3_pipeline_dataform.md 
+ - tuto1_bases_ingestion_sql.md
+ - tuto3_pipeline_dataform.md
