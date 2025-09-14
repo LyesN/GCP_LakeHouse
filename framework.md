@@ -107,38 +107,16 @@ source_file STRING
 
 ## Standards de Développement
 
-### Configuration Dataform
-```javascript
-config {
-  type: "table",
-  schema: "02_ODS",
-  name: "{entity_name}"
-}
-```
+### Templates de Référence
 
-### Structure SQL Obligatoire
-```sql
--- En-tête descriptif
--- Flux : {source} -> {target}
--- Entity : {entity_name}
+Utiliser les fichiers de l'implémentation **employees** comme templates de référence pour tous les nouveaux cas d'usage :
 
-SELECT
-    -- Colonnes métier
-    column1,
-    column2,
-    -- Métadonnées d'ingestion (OBLIGATOIRE)
-    CURRENT_TIMESTAMP() AS ingestion_date,
-    '{source_path}' AS source_file
-FROM
-    `01_STG.{entity_name}`
-```
+**Fichiers Templates** :
+- `bigquery/00_ddl/create_external_table_stg_employees.sql` - Table externe STG
+- `bigquery/00_ddl/create_table_ods_employees.sql` - Table ODS
+- `Dataform/02_ods/load_stg_to_ods_employees.sqlx` - Transformation ELT
 
-### Gestion des Types
-- **ID** : `INT64 NOT NULL`
-- **Dates** : `DATE` ou `TIMESTAMP`
-- **Montants** : `FLOAT64`
-- **Texte** : `STRING`
-- **Booléens** : `BOOL`
+**Règle** : Dupliquer ces templates et adapter pour la nouvelle entité en respectant les conventions de nommage.
 
 ## Bonnes Pratiques
 
@@ -150,12 +128,7 @@ FROM
 ### Monitoring
 - Ajouter systématiquement les métadonnées d'ingestion
 - Utiliser les vues Dataform pour le lineage
-- Implémenter les tests de qualité données
 
-### Sécurité
-- Respecter les permissions IAM par couche
-- Chiffrement automatique GCP
-- Audit logs activés
 
 ## Processus d'Implémentation
 
@@ -167,7 +140,6 @@ FROM
 ### 2. Développement
 - Suivre les templates du pattern choisi
 - Respecter les conventions de nommage
-- Implémenter les métadonnées obligatoires
 
 ### 3. Tests et Validation
 - Vérifier le lineage de bout en bout
