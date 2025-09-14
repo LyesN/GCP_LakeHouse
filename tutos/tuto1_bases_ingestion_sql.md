@@ -139,7 +139,7 @@ CREATE TABLE `lake-471013.02_ODS.employees` (
    - Vérifiez que la table apparaît dans l'explorateur sous `02_ODS`
    - La table est maintenant créée et prête pour l'ingestion
 
-### 2.3 Développement du flux d'ingestion en SQL
+### 2.3 Développement de la requete d'ingestion avec Bigquery
 
 #### A. Requête de chargement depuis GCS
 
@@ -175,12 +175,5 @@ FROM FILES (
 
 Ce tutoriel couvre les bases de l'ingestion CSV vers BigQuery. Pour continuer :
 
-- **Tutoriel 2** : Implémentation avec Airflow pour l'orchestration
-- **Tutoriel 3** : Implémentation avec Dataflow pour le processing à grande échelle
-
-## Bonnes pratiques
-
-- Toujours forcer le schéma pour éviter les conflits
-- Tester l'accessibilité des fichiers avant l'ingestion
-- Utiliser des métadonnées d'ingestion pour traçabilité
-- Valider la structure du fichier CSV avant traitement
+- **Tutoriel 2** : orchestration avec notebook Python
+- **Tutoriel 3** : Implémentation STG avec table externe et pipline avec Dataflow
