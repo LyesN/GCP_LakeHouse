@@ -140,7 +140,7 @@ Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'archit
 
 ### 🔍 **Observabilité et Gouvernance**
 - **Lineage complet** : Traçabilité Bronze → Silver → Gold via Dataform
-- **Monitoring intégré** : Pub/Sub pour événements et notifications
+- **Monitoring applicatif intégré** : Pub/Sub pour événements et notifications
 - **Workflows visuels** : Interface Dataform pour visualisation des dépendances
 - **Logs centralisés** : Tous les traitements tracés dans GCP
 
