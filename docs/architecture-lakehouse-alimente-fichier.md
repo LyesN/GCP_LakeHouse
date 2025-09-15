@@ -1,4 +1,4 @@
-# Architecture Lakehouse Alimenté avec Fichier
+# Architecture Lakehouse Alimenté avec Fichiers
 
 Cette documentation présente l'architecture et l'implémentation pratique du framework GCP Data Lakehouse pour l'alimentation de données par fichiers, basée sur l'architecture **médaillon étendue** avec 4 couches.
 
