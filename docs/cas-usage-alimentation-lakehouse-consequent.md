@@ -1,46 +1,57 @@
 # Cas d'Usage : Alimentation Lakehouse Conséquent
 
-Cette documentation présente l'architecture et l'implémentation pratique du framework GCP Data Lakehouse pour des cas d'usage d'alimentation de données conséquents, basée sur l'architecture **médaillon** (Medallion Architecture).
+Cette documentation présente l'architecture et l'implémentation pratique du framework GCP Data Lakehouse pour des cas d'usage d'alimentation de données conséquents, basée sur l'architecture **médaillon étendue** avec 4 couches.
 
 ## Vue d'Ensemble Architecture
 
 ![Architecture Pipeline Data](Architecture-pipline-data.png)
 
-*Architecture générale du framework GCP Data Lakehouse avec l'approche médaillon : **Bronze → Silver → Gold***
+*Architecture générale du framework GCP Data Lakehouse avec l'approche médaillon étendue : **RAW → Bronze → Silver → Gold***
 
-## Architecture Médaillon GCP
+## Architecture Médaillon GCP Étendue
 
-L'architecture suit le pattern **médaillon** reconnu dans l'industrie, implémenté avec les services GCP :
+L'architecture suit le pattern **médaillon étendu** avec 4 couches, implémenté avec les services GCP :
 
-### 🥉 **Couche BRONZE** (Données Brutes)
-- **Stockage** : Google Cloud Storage
-- **Rôle** : Stockage des fichiers bruts sans transformation
-- **Formats** : CSV, JSON, Parquet, autres formats natifs
+### 📁 **Couche RAW** (Landing Zone)
+- **Stockage** : Google Cloud Storage (bucket landing)
+- **Rôle** : Zone d'atterrissage des fichiers sources externes
+- **Formats** : Tous formats natifs (CSV, JSON, Parquet, XML, etc.)
 - **Caractéristiques** :
-  - Données "as-is" depuis les sources
-  - Historique complet et immutable
-  - Stockage économique et scalable
-  - Durabilité et disponibilité élevées
+  - Fichiers sources "as-is" depuis systèmes externes
+  - Aucune transformation ni validation
+  - Rétention temporaire (7-30 jours)
+  - Point d'entrée unique pour toutes les sources
+
+### 🥉 **Couche BRONZE** (Données Historisées)
+- **Stockage** : BigQuery tables avec métadonnées d'ingestion
+- **Rôle** : Historisation complète avec traçabilité
+- **Technologie** : Tables BigQuery partitionnées par date d'ingestion
+- **Caractéristiques** :
+  - Ingestion complète des données RAW dans BigQuery
+  - **Métadonnées automatiques** : `ingestion_date`, `source_file`, `file_hash`
+  - Historique immutable et auditable
+  - Schéma flexible avec détection automatique
+  - Partitioning par date pour performance
 
 ### 🥈 **Couche SILVER** (Données Nettoyées)
 - **Stockage** : BigQuery avec tables externes (01_STG)
-- **Rôle** : Interface d'accès structuré aux données Bronze
-- **Technologie** : Tables externes BigQuery pointant vers GCS
+- **Rôle** : Interface d'accès structuré et nettoyé aux données Bronze
+- **Technologie** : Tables externes BigQuery ou vues sur Bronze
 - **Caractéristiques** :
-  - Accès SQL direct aux fichiers Bronze
-  - Pas de duplication de données
-  - Schémas typés et validés
+  - Transformation et nettoyage des données Bronze
+  - Validation de qualité et conformité schéma
+  - Déduplication et standardisation
   - Intégration native avec Dataform
 
 ### 🥇 **Couche GOLD** (Données Business-Ready)
 - **Stockage** : BigQuery avec tables matérialisées (02_ODS)
 - **Rôle** : Données enrichies, agrégées et prêtes pour l'analytique
-- **Technologie** : Tables BigQuery optimisées
+- **Technologie** : Tables BigQuery optimisées avec SLA
 - **Caractéristiques** :
-  - Transformations métier appliquées
-  - Métadonnées d'ingestion automatiques
-  - Performance optimisée pour les requêtes
-  - Données de confiance pour le reporting
+  - Transformations métier et règles business
+  - Agrégations et métriques calculées
+  - Performance optimisée (clustering, partitioning)
+  - Données certifiées pour le reporting
 
 ## Exemple Concret : Workflow Pattern 1 avec Cloud Composer
 
@@ -48,38 +59,46 @@ L'architecture suit le pattern **médaillon** reconnu dans l'industrie, impléme
 
 *Workflow détaillé d'ingestion CSV orchestré par Cloud Composer suivant l'architecture médaillon*
 
-### Flux de Données Orchestré
+### Flux de Données Orchestré (4 Couches)
 
-Le diagramme montre un **workflow Cloud Composer** complet avec 5 étapes séquentielles :
+Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'architecture 4-couches :
 
-#### 1. **Vérification de Disponibilité**
+#### 1. **Vérification Landing Zone (RAW)**
 - **Action** : "Vérifier que les fichiers sont disponibles"
-- **Rôle** : Validation de la présence des fichiers sources
+- **Couche** : RAW (Cloud Storage landing)
+- **Contrôles** : Présence fichiers, permissions, intégrité
 - **Sortie** : Notification vers Pub/Sub en cas d'erreur
 
 #### 2. **Contrôle Qualité Sources**
 - **Action** : "Vérifier la qualité des fichiers (en-tête, séparateur...)"
-- **Rôle** : Validation du format et de la structure
-- **Contrôles** : Headers, délimiteurs, encodage, taille
+- **Couche** : Validation RAW avant ingestion
+- **Contrôles** : Headers, délimiteurs, encodage, taille, format
 - **Sortie** : Logs applicatifs vers monitoring
 
-#### 3. **Ingestion Bronze**
-- **Action** : "Ingérer les fichiers (Bronze)"
-- **Destination** : Cloud Storage (couche Bronze)
-- **Rôle** : Stockage brut des données "as-is"
-- **Déclencheur** : Pushdown vers Silver
+#### 3. **Ingestion Bronze avec Métadonnées**
+- **Action** : "Ingérer les fichiers RAW vers Bronze BigQuery"
+- **Source** : Cloud Storage (RAW)
+- **Destination** : BigQuery tables Bronze avec métadonnées
+- **Transformations** :
+  - Ajout `ingestion_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP()`
+  - Ajout `source_file STRING` (chemin complet)
+  - Ajout `file_hash STRING` (pour déduplication)
+  - Ajout `batch_id STRING` (pour traçabilité)
+- **Partitioning** : Par `ingestion_date` pour performance
 
-#### 4. **Nettoyage Silver**
-- **Action** : "Nettoyage des données (Silver)"
+#### 4. **Nettoyage Silver depuis Bronze**
+- **Action** : "Nettoyage et structuration (Silver)"
+- **Source** : Tables Bronze BigQuery
 - **Orchestration** : Workflow DQ (Data Quality) via Dataform
-- **Rôle** : Validation, typage, nettoyage
-- **Résultat** : Requêtes DQ dans BigQuery
+- **Transformations** : Déduplication, validation, typage
+- **Résultat** : Tables/vues Silver dans BigQuery
 
-#### 5. **Transformation Gold**
-- **Action** : "Transformations et alimentation du modèle Business (Gold)"
+#### 5. **Transformation Gold Business**
+- **Action** : "Transformations et alimentation modèle Business (Gold)"
+- **Source** : Tables Silver BigQuery
 - **Orchestration** : Workflow MOM (Master Object Model) via Dataform
-- **Rôle** : Enrichissement, agrégations, règles métier
-- **Résultat** : Requêtes Transfo/Alim dans BigQuery
+- **Transformations** : Enrichissement, agrégations, règles métier
+- **Résultat** : Tables Gold (02_ODS) prêtes pour analytics
 
 ### Services GCP Impliqués
 
@@ -181,13 +200,36 @@ Le diagramme montre un **workflow Cloud Composer** complet avec 5 étapes séque
 
 ## Correspondance avec le Framework de Référence
 
-Cette architecture médaillon **Bronze → Silver → Gold** correspond à l'implémentation GCP du framework de référence :
+Cette architecture médaillon **étendue 4-couches** correspond à l'implémentation GCP avancée du framework de référence :
 
 | **Médaillon** | **Framework** | **Technologie GCP** | **Rôle** |
 |---------------|---------------|---------------------|----------|
-| 🥉 **Bronze** | **RAW** | Cloud Storage | Fichiers bruts "as-is" |
-| 🥈 **Silver** | **STG (01_STG)** | BigQuery Tables Externes | Accès structuré, validation |
+| 📁 **RAW** | **Landing Zone** | Cloud Storage (temporaire) | Landing zone fichiers sources |
+| 🥉 **Bronze** | **RAW étendu** | BigQuery + Métadonnées | Historisation avec traçabilité |
+| 🥈 **Silver** | **STG (01_STG)** | BigQuery Tables/Vues | Nettoyage et structuration |
 | 🥇 **Gold** | **ODS (02_ODS)** | BigQuery Tables Matérialisées | Analytics-ready, enrichi |
+
+### **🆕 Nouvelles Métadonnées Bronze Obligatoires**
+
+```sql
+-- Schema Bronze type avec métadonnées d'ingestion
+CREATE TABLE `bronze_schema.employees` (
+  -- Colonnes métier (données sources)
+  id INT64,
+  nom STRING,
+  prenom STRING,
+  -- ... autres colonnes métier
+
+  -- Métadonnées d'ingestion (OBLIGATOIRES)
+  ingestion_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+  source_file STRING,
+  file_hash STRING,
+  batch_id STRING,
+  raw_data STRING  -- JSON des données brutes si besoin
+)
+PARTITION BY DATE(ingestion_date)
+CLUSTER BY source_file;
+```
 
 ### ✅ **Conformité Framework Stricte**
 
