@@ -158,7 +158,7 @@ Utiliser les fichiers de l'implémentation **employees** comme templates de réf
 - [Guide Dataform](https://cloud.google.com/dataform/docs)
 
 ### Documentation Détaillée
-- 📋 **[Cas d'Usage : Alimentation Lakehouse Conséquent](docs/cas-usage-alimentation-lakehouse-consequent.md)** - Architecture visuelle et exemples concrets
+- 📋 **[Architecture Lakehouse Alimenté avec Fichier](docs/architecture-lakehouse-alimente-fichier.md)** - Architecture visuelle et exemples concrets
 
 ### Tutoriels du Projet
 - `tutos/tuto1_bases_ingestion_sql.md` - Bases de l'ingestion CSV

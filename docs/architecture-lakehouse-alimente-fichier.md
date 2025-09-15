@@ -1,6 +1,6 @@
-# Cas d'Usage : Alimentation Lakehouse Conséquent
+# Architecture Lakehouse Alimenté avec Fichier
 
-Cette documentation présente l'architecture et l'implémentation pratique du framework GCP Data Lakehouse pour des cas d'usage d'alimentation de données conséquents, basée sur l'architecture **médaillon étendue** avec 4 couches.
+Cette documentation présente l'architecture et l'implémentation pratique du framework GCP Data Lakehouse pour l'alimentation de données par fichiers, basée sur l'architecture **médaillon étendue** avec 4 couches.
 
 ## Vue d'Ensemble Architecture
 
@@ -155,7 +155,7 @@ Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'archit
 ### 📊 **Volumes de Données Testés**
 - ✅ **5MB** : Tests et développement, prototypage rapide
 - ✅ **1GB** : Datasets moyens, analytics départementaux
-- ✅ **5GB** : Volumes conséquents, production entreprise
+- ✅ **5GB** : Volumes importants, production entreprise
 - ✅ **>5GB** : Architecture scalable, splitting automatique possible
 
 ### 📁 **Formats Sources (Couche Bronze)**
