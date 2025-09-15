@@ -171,33 +171,37 @@ Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'archit
 - **Near real-time** : Déclenchement par événements GCS via Cloud Functions
 - **Micro-batch** : Traitement par petits lots avec Dataform scheduling
 
-## Évolutions et Patterns Avancés
+## Patterns Alternatifs et Économiques
 
-### **Pattern 1 Actuel : Ingestion CSV Médaillon**
-- **Implémenté** : Workflow Cloud Composer complet
-- **RAW** : Cloud Storage landing zone temporaire
-- **Bronze** : BigQuery avec métadonnées d'ingestion
-- **Silver** : BigQuery tables nettoyées et validées
-- **Gold** : BigQuery tables matérialisées business-ready
-- **Orchestration** : Dataform pour DQ et transformations
+### **Pattern Léger : Cloud Functions + Scheduler**
+- **Orchestration** : Cloud Scheduler (cron) + Cloud Functions
+- **Use case** : POC, MVP, projets jusqu'à 1GB
+- **Avantages** : Coût minimal (pay-per-use), déploiement rapide
+- **Limitations** : Pas de gestion d'erreurs avancée, monitoring basique
 
-### **Pattern 2 : Multi-Sources Enterprise**
-- **Sources diverses** : APIs REST, bases relationnelles, SaaS
-- **Connecteurs natifs** : Salesforce, SAP, Oracle via Cloud Data Fusion
-- **CDC** : Change Data Capture pour réplication temps réel
-- **Unified Bronze** : Consolidation multi-sources dans GCS
+### **Pattern Intermédiaire : Cloud Workflows**
+- **Orchestration** : Cloud Workflows YAML + Cloud Scheduler
+- **Use case** : Projets moyens, pipelines avec logique conditionnelle
+- **Avantages** : 90% moins cher que Composer, workflows visuels
+- **Limitations** : Pas d'interface graphique riche, debugging limité
 
-### **Pattern 3 : Streaming Temps Réel**
-- **Ingestion** : Cloud Pub/Sub → Dataflow → BigQuery
-- **Architecture** : Lambda avec batch et streaming
-- **Use cases** : IoT, logs applicatifs, événements business
-- **Fenêtrage** : Agrégations temps réel avec Apache Beam
+### **Pattern Serverless : EventArc + Functions**
+- **Orchestration** : Déclenchement automatique par événements GCS
+- **Use case** : Ingestion temps réel, volumes irréguliers
+- **Avantages** : Zéro infrastructure, scaling automatique
+- **Limitations** : Difficile à déboguer, cold starts
 
-### **Pattern 4 : Data Mesh et Fédération**
-- **Domaines métier** : Datasets séparés par domain
-- **Gouvernance décentralisée** : Équipes propriétaires de leurs données
-- **APIs data** : Exposition via BigQuery views et Data Catalog
-- **Cross-domain** : Lineage et discovery centralisés
+### **Pattern Hybride : Workflows + Dataform**
+- **Orchestration** : Cloud Workflows pour contrôle + Dataform pour transformations
+- **Use case** : Projets nécessitant lineage SQL sans coût Composer
+- **Avantages** : Meilleur des deux mondes, coût maîtrisé
+- **Limitations** : Complexité de déploiement
+
+### **Pattern Enterprise : Cloud Composer**
+- **Orchestration** : Apache Airflow managé complet
+- **Use case** : Production critique, workflows complexes
+- **Avantages** : Robustesse maximale, écosystème riche
+- **Coût** : Infrastructure permanente ($300-500/mois minimum)
 
 ## Correspondance avec le Framework de Référence
 
