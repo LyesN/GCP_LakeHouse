@@ -34,7 +34,7 @@ L'architecture suit le pattern **médaillon étendu** avec 4 couches, implément
   - Partitioning par date pour performance
 
 ### 🥈 **Couche SILVER** (Données Nettoyées)
-- **Stockage** : BigQuery avec tables externes (01_STG)
+- **Stockage** : BigQuery avec tables ou vues
 - **Rôle** : Interface d'accès structuré et nettoyé aux données Bronze
 - **Technologie** : Tables externes BigQuery ou vues sur Bronze
 - **Caractéristiques** :
@@ -44,7 +44,7 @@ L'architecture suit le pattern **médaillon étendu** avec 4 couches, implément
   - Intégration native avec Dataform
 
 ### 🥇 **Couche GOLD** (Données Business-Ready)
-- **Stockage** : BigQuery avec tables matérialisées (02_ODS)
+- **Stockage** : BigQuery avec tables matérialisées optimisées
 - **Rôle** : Données enrichies, agrégées et prêtes pour l'analytique
 - **Technologie** : Tables BigQuery optimisées avec SLA
 - **Caractéristiques** :
@@ -98,7 +98,7 @@ Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'archit
 - **Source** : Tables Silver BigQuery
 - **Orchestration** : Workflow MOM (Master Object Model) via Dataform
 - **Transformations** : Enrichissement, agrégations, règles métier
-- **Résultat** : Tables Gold (02_ODS) prêtes pour analytics
+- **Résultat** : Tables Gold optimisées prêtes pour analytics
 
 ### Services GCP Impliqués
 
@@ -175,9 +175,10 @@ Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'archit
 
 ### 🎯 **Pattern 1 Actuel : Ingestion CSV Médaillon**
 - ✅ **Implémenté** : Workflow Cloud Composer complet
-- ✅ **Bronze** : Cloud Storage avec fichiers bruts
-- ✅ **Silver** : BigQuery tables externes (01_STG)
-- ✅ **Gold** : BigQuery tables matérialisées (02_ODS)
+- ✅ **RAW** : Cloud Storage landing zone temporaire
+- ✅ **Bronze** : BigQuery avec métadonnées d'ingestion
+- ✅ **Silver** : BigQuery tables nettoyées et validées
+- ✅ **Gold** : BigQuery tables matérialisées business-ready
 - ✅ **Orchestration** : Dataform pour DQ et transformations
 
 ### 🚀 **Pattern 2 : Multi-Sources Enterprise**
@@ -206,8 +207,8 @@ Cette architecture médaillon **étendue 4-couches** correspond à l'implémenta
 |---------------|---------------|---------------------|----------|
 | 📁 **RAW** | **Landing Zone** | Cloud Storage (temporaire) | Landing zone fichiers sources |
 | 🥉 **Bronze** | **RAW étendu** | BigQuery + Métadonnées | Historisation avec traçabilité |
-| 🥈 **Silver** | **STG (01_STG)** | BigQuery Tables/Vues | Nettoyage et structuration |
-| 🥇 **Gold** | **ODS (02_ODS)** | BigQuery Tables Matérialisées | Analytics-ready, enrichi |
+| 🥈 **Silver** | **Cleaned Data** | BigQuery Tables/Vues | Nettoyage et structuration |
+| 🥇 **Gold** | **Business Data** | BigQuery Tables Matérialisées | Analytics-ready, enrichi |
 
 ### **🆕 Nouvelles Métadonnées Bronze Obligatoires**
 
@@ -236,11 +237,11 @@ CLUSTER BY source_file;
 Cette documentation respecte intégralement les standards définis dans [`framework.md`](../framework.md) :
 
 - ✅ **Stack technique GCP** : 100% services Google Cloud Platform
-- ✅ **Architecture 3-couches** : Bronze/RAW → Silver/STG → Gold/ODS
-- ✅ **Conventions de nommage** : `01_STG.{entity}` et `02_ODS.{entity}`
-- ✅ **Templates employees** : Référence pour tous nouveaux cas d'usage
-- ✅ **Métadonnées obligatoires** : `ingestion_date` et `source_file` en Gold/ODS
+- ✅ **Architecture 4-couches** : RAW → Bronze → Silver → Gold
+- ✅ **Conventions médaillon** : Nomenclature standardisée par couche
+- ✅ **Métadonnées obligatoires** : `ingestion_date`, `source_file`, `file_hash`, `batch_id`
 - ✅ **Orchestration Dataform** : ELT natif avec lineage et observabilité
 - ✅ **Patterns évolutifs** : Extension vers streaming et multi-sources possible
+- ✅ **Traçabilité complète** : Du fichier source aux données business
 
-L'architecture médaillon apporte une **standardisation industrie** tout en respectant le **framework GCP défini** pour garantir cohérence et évolutivité.
+L'architecture médaillon apporte une **standardisation industrie** tout en respectant les **principes du framework GCP** pour garantir cohérence et évolutivité.
