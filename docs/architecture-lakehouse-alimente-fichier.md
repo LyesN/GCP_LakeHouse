@@ -12,7 +12,7 @@ Cette documentation présente l'architecture et l'implémentation pratique du fr
 
 L'architecture suit le pattern **médaillon étendu** avec 4 couches, implémenté avec les services GCP :
 
-### 📁 **Couche RAW** (Landing Zone)
+### **Couche RAW** (Landing Zone)
 - **Stockage** : Google Cloud Storage (bucket landing)
 - **Rôle** : Zone d'atterrissage des fichiers sources externes
 - **Formats** : Tous formats natifs (CSV, JSON, Parquet, XML, etc.)
@@ -22,7 +22,7 @@ L'architecture suit le pattern **médaillon étendu** avec 4 couches, implément
   - Rétention temporaire (7-30 jours)
   - Point d'entrée unique pour toutes les sources
 
-### 🥉 **Couche BRONZE** (Données Historisées)
+### **Couche BRONZE** (Données Historisées)
 - **Stockage** : BigQuery tables avec métadonnées d'ingestion
 - **Rôle** : Historisation complète avec traçabilité
 - **Technologie** : Tables BigQuery partitionnées par date d'ingestion
@@ -33,7 +33,7 @@ L'architecture suit le pattern **médaillon étendu** avec 4 couches, implément
   - Schéma flexible avec détection automatique
   - Partitioning par date pour performance
 
-### 🥈 **Couche SILVER** (Données Nettoyées)
+### **Couche SILVER** (Données Nettoyées)
 - **Stockage** : BigQuery avec tables ou vues
 - **Rôle** : Interface d'accès structuré et nettoyé aux données Bronze
 - **Technologie** : Tables externes BigQuery ou vues sur Bronze
@@ -43,7 +43,7 @@ L'architecture suit le pattern **médaillon étendu** avec 4 couches, implément
   - Déduplication et standardisation
   - Intégration native avec Dataform
 
-### 🥇 **Couche GOLD** (Données Business-Ready)
+### **Couche GOLD** (Données Business-Ready)
 - **Stockage** : BigQuery avec tables matérialisées optimisées
 - **Rôle** : Données enrichies, agrégées et prêtes pour l'analytique
 - **Technologie** : Tables BigQuery optimisées avec SLA
@@ -102,49 +102,49 @@ Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'archit
 
 ### Services GCP Impliqués
 
-**🎼 Cloud Composer (Orchestration)**
+**Cloud Composer (Orchestration)**
 - Workflow global séquentiel
 - Gestion des dépendances entre étapes
 - Retry et gestion d'erreurs
 - Scheduling et monitoring
 
-**📊 Dataform (ELT Processing)**
+**Dataform (ELT Processing)**
 - Workflow DQ pour la couche Silver
 - Workflow MOM pour la couche Gold
 - Gestion du lineage des transformations
 - Interface graphique de visualisation
 
-**🗄️ BigQuery (Processing & Storage)**
+**BigQuery (Processing & Storage)**
 - Requêtes d'ingestion (Bronze → Silver)
 - Requêtes DQ (Data Quality)
 - Requêtes Transfo/Alim (Silver → Gold)
 - Tables externes et matérialisées
 
-**☁️ Cloud Storage (Data Lake)**
+**Cloud Storage (Data Lake)**
 - Couche Bronze : Stockage brut
 - Stockage des fichiers sources
 - Intégration native avec BigQuery
 
-**📡 Pub/Sub (Events & Monitoring)**
+**Pub/Sub (Events & Monitoring)**
 - Événements + Logs + Notifications
 - Monitoring en temps réel
 - Alerting en cas d'échec
 
 ## Avantages de l'Architecture Médaillon GCP
 
-### 🚀 **Performance et Scalabilité**
+### **Performance et Scalabilité**
 - **Architecture médaillon éprouvée** : Standard industrie pour les data lakes
 - **Full BigQuery** : Traitement natif sans infrastructure externe
 - **Transformations internes** : Flux Bronze → Silver → Gold entièrement dans BigQuery
 - **Optimisations automatiques** : Partitioning, clustering, compression BigQuery
 
-### 🔍 **Observabilité et Gouvernance**
+### **Observabilité et Gouvernance**
 - **Lineage complet** : Traçabilité Bronze → Silver → Gold via Dataform
 - **Monitoring applicatif intégré** : Pub/Sub pour événements et notifications
 - **Workflows visuels** : Orchestration exploitants (Airflow) et logique data (Dataform)
 - **Logs centralisés** : Tous les traitements tracés dans GCP
 
-### 🔧 **Flexibilité et Maintenabilité**
+### **Flexibilité et Maintenabilité**
 - **Séparation des responsabilités** : Chaque couche a un rôle précis
 - **Workflows orchestrés** : Cloud Composer pour gestion complexe
 - **Pattern reproductible** : Template réutilisable pour nouveaux cas d'usage
@@ -152,20 +152,20 @@ Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'archit
 
 ## Cas d'Usage Supportés par l'Architecture
 
-### 📊 **Volumes de Données Testés**
-- ✅ **5MB** : Tests et développement, prototypage rapide
-- ✅ **1GB** : Datasets moyens, analytics départementaux
-- ✅ **5GB** : Volumes importants, production entreprise
-- ✅ **>5GB** : Architecture scalable, splitting automatique possible
+### **Volumes de Données Testés**
+- **5MB** : Tests et développement, prototypage rapide
+- **1GB** : Datasets moyens, analytics départementaux
+- **5GB** : Volumes importants, production entreprise
+- **>5GB** : Architecture scalable, splitting automatique possible
 
-### 📁 **Formats Sources (Couche Bronze)**
+### **Formats Sources (Couche Bronze)**
 - **CSV** : Délimiteurs configurables (`;`, `,`, `|`, `\t`)
 - **JSON** : Structures imbriquées, arrays, objets complexes
 - **Parquet** : Format optimisé pour analytics, compression native
 - **Avro** : Schemas évolutifs, intégration Kafka/Pub/Sub
 - **Multi-formats** : Support simultané dans le même pipeline
 
-### ⏰ **Patterns Temporels d'Ingestion**
+### **Patterns Temporels d'Ingestion**
 - **Batch quotidien** : Standard pour la plupart des cas d'usage
 - **Intraday** : Plusieurs exécutions par jour (H+2, H+6, etc.)
 - **Near real-time** : Déclenchement par événements GCS via Cloud Functions
@@ -173,27 +173,27 @@ Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'archit
 
 ## Évolutions et Patterns Avancés
 
-### 🎯 **Pattern 1 Actuel : Ingestion CSV Médaillon**
-- ✅ **Implémenté** : Workflow Cloud Composer complet
-- ✅ **RAW** : Cloud Storage landing zone temporaire
-- ✅ **Bronze** : BigQuery avec métadonnées d'ingestion
-- ✅ **Silver** : BigQuery tables nettoyées et validées
-- ✅ **Gold** : BigQuery tables matérialisées business-ready
-- ✅ **Orchestration** : Dataform pour DQ et transformations
+### **Pattern 1 Actuel : Ingestion CSV Médaillon**
+- **Implémenté** : Workflow Cloud Composer complet
+- **RAW** : Cloud Storage landing zone temporaire
+- **Bronze** : BigQuery avec métadonnées d'ingestion
+- **Silver** : BigQuery tables nettoyées et validées
+- **Gold** : BigQuery tables matérialisées business-ready
+- **Orchestration** : Dataform pour DQ et transformations
 
-### 🚀 **Pattern 2 : Multi-Sources Enterprise**
+### **Pattern 2 : Multi-Sources Enterprise**
 - **Sources diverses** : APIs REST, bases relationnelles, SaaS
 - **Connecteurs natifs** : Salesforce, SAP, Oracle via Cloud Data Fusion
 - **CDC** : Change Data Capture pour réplication temps réel
 - **Unified Bronze** : Consolidation multi-sources dans GCS
 
-### ⚡ **Pattern 3 : Streaming Temps Réel**
+### **Pattern 3 : Streaming Temps Réel**
 - **Ingestion** : Cloud Pub/Sub → Dataflow → BigQuery
 - **Architecture** : Lambda avec batch et streaming
 - **Use cases** : IoT, logs applicatifs, événements business
 - **Fenêtrage** : Agrégations temps réel avec Apache Beam
 
-### 🌐 **Pattern 4 : Data Mesh et Fédération**
+### **Pattern 4 : Data Mesh et Fédération**
 - **Domaines métier** : Datasets séparés par domain
 - **Gouvernance décentralisée** : Équipes propriétaires de leurs données
 - **APIs data** : Exposition via BigQuery views et Data Catalog
@@ -205,12 +205,12 @@ Cette architecture médaillon **étendue 4-couches** correspond à l'implémenta
 
 | **Médaillon** | **Framework** | **Technologie GCP** | **Rôle** |
 |---------------|---------------|---------------------|----------|
-| 📁 **RAW** | **Landing Zone** | Cloud Storage (temporaire) | Landing zone fichiers sources |
-| 🥉 **Bronze** | **RAW étendu** | BigQuery + Métadonnées | Historisation avec traçabilité |
-| 🥈 **Silver** | **Cleaned Data** | BigQuery Tables/Vues | Nettoyage et structuration |
-| 🥇 **Gold** | **Business Data** | BigQuery Tables Matérialisées | Analytics-ready, enrichi |
+| **RAW** | **Landing Zone** | Cloud Storage (temporaire) | Landing zone fichiers sources |
+| **Bronze** | **RAW étendu** | BigQuery + Métadonnées | Historisation avec traçabilité |
+| **Silver** | **Cleaned Data** | BigQuery Tables/Vues | Nettoyage et structuration |
+| **Gold** | **Business Data** | BigQuery Tables Matérialisées | Analytics-ready, enrichi |
 
-### **🆕 Nouvelles Métadonnées Bronze Obligatoires**
+### **Nouvelles Métadonnées Bronze Obligatoires**
 
 ```sql
 -- Schema Bronze type avec métadonnées d'ingestion
@@ -232,16 +232,16 @@ PARTITION BY DATE(ingestion_date)
 CLUSTER BY source_file;
 ```
 
-### ✅ **Conformité Framework Stricte**
+### **Conformité Framework Stricte**
 
 Cette documentation respecte intégralement les standards définis dans [`framework.md`](../framework.md) :
 
-- ✅ **Stack technique GCP** : 100% services Google Cloud Platform
-- ✅ **Architecture 4-couches** : RAW → Bronze → Silver → Gold
-- ✅ **Conventions médaillon** : Nomenclature standardisée par couche
-- ✅ **Métadonnées obligatoires** : `ingestion_date`, `source_file`, `file_hash`, `batch_id`
-- ✅ **Orchestration Dataform** : ELT natif avec lineage et observabilité
-- ✅ **Patterns évolutifs** : Extension vers streaming et multi-sources possible
-- ✅ **Traçabilité complète** : Du fichier source aux données business
+- **Stack technique GCP** : 100% services Google Cloud Platform
+- **Architecture 4-couches** : RAW → Bronze → Silver → Gold
+- **Conventions médaillon** : Nomenclature standardisée par couche
+- **Métadonnées obligatoires** : `ingestion_date`, `source_file`, `file_hash`, `batch_id`
+- **Orchestration Dataform** : ELT natif avec lineage et observabilité
+- **Patterns évolutifs** : Extension vers streaming et multi-sources possible
+- **Traçabilité complète** : Du fichier source aux données business
 
 L'architecture médaillon apporte une **standardisation industrie** tout en respectant les **principes du framework GCP** pour garantir cohérence et évolutivité.
