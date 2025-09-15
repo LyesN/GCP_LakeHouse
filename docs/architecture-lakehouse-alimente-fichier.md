@@ -135,7 +135,7 @@ Le diagramme montre un **workflow Cloud Composer** complet adapté pour l'archit
 ### 🚀 **Performance et Scalabilité**
 - **Architecture médaillon éprouvée** : Standard industrie pour les data lakes
 - **Full BigQuery** : Traitement natif sans infrastructure externe
-- **Tables externes** : Accès direct Bronze → Silver sans duplication
+- **Transformations internes** : Flux Bronze → Silver → Gold entièrement dans BigQuery
 - **Optimisations automatiques** : Partitioning, clustering, compression BigQuery
 
 ### 🔍 **Observabilité et Gouvernance**
