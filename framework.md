@@ -46,7 +46,7 @@ RAW (Cloud Storage) → STG (01_STG) → ODS (02_ODS)
 
 ## Patterns d'Implémentation
 
-### Pattern 1 : Ingestion CSV Simple
+### Pattern Ingestion CSV Simple
 
 **Use Case** : Ingestion d'un fichier CSV depuis GCS vers BigQuery
 
@@ -73,7 +73,7 @@ Dataform/02_ods/load_stg_to_ods_{entity}.sqlx
 - Taille max recommandée : < 5GB par fichier
 - Schema fixe et typé
 
-### Pattern 2 : Ingestion avec Orchestration Airflow
+### Pattern Ingestion avec Orchestration Airflow
 
 **Use Case** : Pipeline complexe avec étapes conditionnelles
 
