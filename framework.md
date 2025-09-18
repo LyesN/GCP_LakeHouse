@@ -73,20 +73,55 @@ Dataform/02_ods/load_stg_to_ods_{entity}.sqlx
 - Taille max recommandée : < 5GB par fichier
 - Schema fixe et typé
 
-### Pattern Ingestion avec Orchestration Airflow
+**Interactions avec d'autres patterns** :
+- ✅ Peut être orchestré via **Pattern Orchestration Entreprise** pour des workflows complexes avec Cloud Composer
+- ✅ Compatible avec scheduling simple via Cloud Scheduler + Cloud Functions
+- ✅ Intégrable dans des pipelines multi-sources avec gestion centralisée des erreurs
+- ✅ Extensible avec des transformations post-ingestion via Dataform pipelines
 
-**Use Case** : Pipeline complexe avec étapes conditionnelles
+### Pattern Orchestration Entreprise
+
+**Use Case** : Coordination de workflows data complexes et multi-étapes avec gestion d'erreurs avancée
+
+**Stack** :
+```
+Cloud Composer (Apache Airflow managé) + BigQuery + Dataform
+```
 
 **Flux** :
 ```
-GCS → STG → ODS (orchestré par Cloud Composer)
+Cloud Composer DAG → Multiples tâches (validation, ingestion, transformation, notification)
 ```
 
+**Implémentation** :
+- **DAG Airflow** : Définition des workflows avec dépendances
+- **Operators BigQuery** : Exécution de requêtes DDL/DML
+- **Dataform Operator** : Déclenchement des transformations Dataform
+- **Monitoring** : Alertes et notifications intégrées
+
 **Avantages** :
-- ✅ Gestion des erreurs et reprises
-- ✅ Workflows conditionnels
-- ✅ Monitoring avancé
-- ✅ Intégration avec systèmes externes
+- ✅ Gestion robuste des erreurs et reprises automatiques
+- ✅ Workflows conditionnels et parallélisation
+- ✅ Monitoring et observabilité centralisés
+- ✅ Intégration native avec l'écosystème GCP
+- ✅ Interface graphique pour le suivi des exécutions
+
+**Template des livrables** :
+```
+composer/dags/workflow_{entity}_pipeline.py
+composer/dags/common/operators/bigquery_helpers.py
+composer/dags/common/operators/dataform_helpers.py
+```
+
+**Contraintes** :
+- Infrastructure managée Cloud Composer requise
+- Coût fixe même pour workflows simples
+- Complexité de setup pour cas d'usage basiques
+
+**Interactions avec d'autres patterns** :
+- ✅ Orchestration de multiples **Pattern Ingestion CSV Simple** en parallèle ou séquentiel
+- ✅ Coordination des dépendances entre différents patterns d'ingestion
+- ✅ Gestion centralisée des notifications et du monitoring
 
 ## Standards de Nommage
 
