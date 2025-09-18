@@ -157,6 +157,9 @@ Utiliser les fichiers de l'implémentation **employees** comme templates de réf
 - [Bonnes pratiques BigQuery](https://cloud.google.com/bigquery/docs/load-transform-export-intro?hl=fr)
 - [Guide Dataform](https://cloud.google.com/dataform/docs)
 
+### Documentation Détaillée
+- 📋 **[Architecture Lakehouse Alimenté avec Fichier](docs/architecture-lakehouse-alimente-fichier.md)** - Architecture visuelle et exemples concrets
+
 ### Tutoriels du Projet
 - `tutos/tuto1_bases_ingestion_sql.md` - Bases de l'ingestion CSV
 - `tutos/tuto3_pipeline_dataform.md` - Pipeline avec tables externes
@@ -164,6 +167,7 @@ Utiliser les fichiers de l'implémentation **employees** comme templates de réf
 ### Templates de Code
 - `bigquery/00_ddl/` - Scripts DDL de création de tables
 - `Dataform/02_ods/` - Transformations ELT
+
 
 ## Évolutions du Framework
 
