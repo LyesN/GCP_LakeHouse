@@ -53,7 +53,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="rbWIwhFLxD-qBuzQwJ6h" name="Architecture-Bigquery-Dataform-Composer">
-    <mxGraphModel dx="2066" dy="1201" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1181" dy="686" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -115,10 +115,10 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="wvHN0B2mU-6-lQxxzvEV-11" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.845;exitY=1.01;exitDx=0;exitDy=0;exitPerimeter=0;strokeColor=light-dark(#4285f4, #ededed);entryX=0.881;entryY=-0.008;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="wvHN0B2mU-6-lQxxzvEV-2" edge="1">
+        <mxCell id="wvHN0B2mU-6-lQxxzvEV-11" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.845;exitY=1.01;exitDx=0;exitDy=0;exitPerimeter=0;strokeColor=light-dark(#4285f4, #ededed);entryX=0.881;entryY=-0.008;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="639" y="640" as="sourcePoint" />
-            <mxPoint x="640" y="670" as="targetPoint" />
+            <mxPoint x="276" y="640" as="sourcePoint" />
+            <mxPoint x="276.08000000000015" y="677.3600000000001" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="wvHN0B2mU-6-lQxxzvEV-12" value="Ingérer un fichier" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="wvHN0B2mU-6-lQxxzvEV-11" vertex="1" connectable="0">
